@@ -1,0 +1,159 @@
+#include "mantle_particle.h"
+
+Meta::Meta(void) {
+
+    collisions = -1;
+    count_collisions = false;
+    collect_history = false;
+    user_properties = NULL;
+
+}
+
+Particle::Particle(double mass, double radius) : meta_props() {
+
+    m = mass;
+    r = radius;
+
+}
+
+void Particle::setStateCart(double x, double y, double z, double vx, double vy, double vz) {
+
+    m_cart_state_vector s = {0};
+    s.x = x;
+    s.y = y;
+    s.z = z;
+    s.vx = vx;
+    s.vy = vy;
+    s.vz = vz;
+
+    state = s;
+
+}
+
+void Particle::setStateKep(double a, double e, double inc, double Omega, double omega, double f) {
+
+    m_kep_state_vector s = {0};
+    s.a = a;
+    s.e = e;
+    s.inc = inc;
+    s.Omega = Omega;
+    s.omega = omega;
+    s.f = f;
+
+    state = s;
+
+}
+
+void Particle::setCollisionTracker(void) {
+
+    meta_props.count_collisions = true;
+
+}
+
+void Particle::setHistoryTracker(void) {
+
+    meta_props.collect_history = true;
+
+}
+
+void Particle::setAdditionalForces(std::vector<m_force_func> function_array) {
+
+    meta_props.additional_forces = function_array;
+
+}
+
+void Particle::setODE(m_ode_func func, std::vector<double> y) {
+
+    Ode ode;
+    ode.ode_func = func;
+    ode.y = y;
+    ode.user_properties = meta_props.user_properties;
+    ode.id = 0;
+
+    if (!meta_props.odes.empty()) {ode.id = meta_props.odes.back().id++;}
+
+    meta_props.odes.push_back(ode);
+
+}
+
+void Particle::setCollisionContext(m_coll_context collision_context) {meta_props.collisionContext = collision_context;}
+
+void Particle::setChar(double LU, double TU, double MU) {meta_props.LU = LU; meta_props.TU = TU; meta_props.MU = MU;};
+
+void Particle::setHash(uint32_t hash) {meta_props.hash = hash;};
+
+std::variant<m_cart_state_vector, m_kep_state_vector> Particle::getState() {return state;}
+
+Meta* Particle::getMeta() {return &meta_props;}
+
+std::vector<Ode>* Particle::getODE() {return &meta_props.odes;}
+
+double Particle::getMass() {return m;}
+
+double Particle::getRadius() {return r;}
+
+uint32_t Particle::getHash() {return meta_props.hash;};
+
+template <typename Op>
+struct Dim {
+
+    Op op;
+
+    Dim(Op o, double l, double t) : op(o), LU(l), TU(t) {}
+
+    void operator()(m_cart_state_vector& state) {
+
+        state.x = op(state.x, LU);
+        state.y = op(state.y, LU);
+        state.z = op(state.z, LU);
+        state.vx = op(state.vx, (LU / TU));
+        state.vy = op(state.vy, (LU / TU));
+        state.vz = op(state.vz, (LU / TU));
+        state.t = op(state.t, TU);
+
+    }
+
+    void operator()(m_kep_state_vector& state) {
+
+        state.a = op(state.a, LU);
+        state.t = op(state.t, TU);
+
+    }
+
+    double LU;
+    double TU;
+
+};
+
+void Particle::nonDim() {
+
+    Dim<std::divides<double>> dim_((std::divides<double>()), meta_props.LU, meta_props.TU);
+    std::visit(dim_, state);
+
+    m = m / meta_props.MU;
+    r = r / meta_props.LU;
+
+}
+
+void Particle::dim() {
+
+    Dim<std::multiplies<double>> dim_((std::multiplies<double>()), meta_props.LU, meta_props.TU);
+    std::visit(dim_, state);
+
+    m = m * meta_props.MU;
+    r = r * meta_props.LU;
+
+}
+
+m_accel operator+(const m_accel& t, const m_accel& u) {
+    return {.ax = t.ax + u.ax, .ay = t.ay + u.ay, .az = t.az + u.az};
+}
+
+m_accel operator*=(double s, const m_accel& u) {
+    return {.ax = s*u.ax, .ay = s*u.ay, .az = s*u.az};
+}
+
+m_accel operator*=(const m_accel& u, double s) {
+    return {.ax = s*u.ax, .ay = s*u.ay, .az = s*u.az};
+}
+
