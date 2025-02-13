@@ -27,14 +27,14 @@ test/*.so
 *.lai
 *.la
 *.a
-/lib/*
+lib/*
 *.lib
 
 # Executables
 *.exe
 *.out
 *.app
-/test/test
+test/test
 
 # Test data
 test/data.txt
