@@ -2,6 +2,7 @@
 #define PARTICLE_H
 
 #include <variant>
+#include <cstdint>
 #include <optional>
 #include <vector>
 #include <functional>

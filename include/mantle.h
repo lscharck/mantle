@@ -1,4 +1,5 @@
 #include <vector>
+#include <cstdint>
 #include <algorithm>
 #include <functional>
 #include <numeric>

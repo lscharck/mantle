@@ -41,3 +41,4 @@ test/data.txt
 
 # ccls
 .ccls-cache
+compile_commands.json
