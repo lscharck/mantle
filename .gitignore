@@ -35,3 +35,9 @@ test/*.so
 *.out
 *.app
 /test/test
+
+# Test data
+test/data.txt
+
+# ccls
+.ccls-cache

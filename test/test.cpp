@@ -138,7 +138,7 @@ std::vector<Particle> buildParticles() {
     p1.setCollisionTracker();
     p1.setHistoryTracker();
     properties1 props1 = {.param1 = 17.8, .param2 = 90.3, .mass=mass1, .radius=radius1};
-    p1.setUserProperties(props1);
+    p1.setParticleProperties(props1);
     p1.setAdditionalForces({f11, f12});
     p1.setODE(g11, {0.0, 0.0});
     p1.setODE(g12, {0.0, 0.0, 0.0});
@@ -150,7 +150,7 @@ std::vector<Particle> buildParticles() {
     p2.setCollisionTracker();
     p2.setHistoryTracker();
     properties2 props2 = {.param1 = 45.2, .param2 = 1, .mass=mass2, .radius=radius2};
-    p2.setUserProperties(props2);
+    p2.setParticleProperties(props2);
     p2.setAdditionalForces({f21, f22});
     p2.setODE(g21, {0.0, 0.0});
     p2.setODE(g22, {0.0, 0.0, 0.0});
