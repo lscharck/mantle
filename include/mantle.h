@@ -8,6 +8,7 @@
 #include "mantle_particle_restricted.h"
 
 typedef std::vector<Particle> (*userParticles)();
+typedef std::vector<std::vector<ParticleHistory>> m_history;
 
 struct m_sim_params {
 
@@ -35,24 +36,28 @@ class Mantle {
 	userParticles userParticlesFn;
 	std::vector<Particle> particles;
 	std::optional<m_coll_context> collisionContext;
-	std::vector<std::pair<uint32_t, uint32_t>> ode_to_particle;
 	bool has_additional_forces;
 	bool has_ode;
 
 	public:
 	Mantle(m_sim_params, userParticles);
-	void setAdditionalForce(void);
+	~Mantle();
+	void setAdditionalForce();
 	void setCollisionContext(m_coll_context);
-	void setOde(void);
-	void initMantle(void);
-	std::vector<std::vector<ParticleHistory>> evalSim(double, int);
+	void setOde();
+	void initMantle();
+	m_history evalSim(double, int);
+
+	public:
+	long getCollisionLog() const;
 
 	private:
-	void updateParams(void);
-	void addAdditionalForce(void);
-	void addParticles(void);
+	void updateParams();
+	void addHash();
+	void addAdditionalForce();
+	void addParticles();
 	void addCollision(m_coll_context);
-	void addOde(void);
+	void addOde();
 
 };
 

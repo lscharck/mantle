@@ -81,9 +81,19 @@ void Particle::setODE(m_ode_func func, std::vector<double> y) {
 
 void Particle::setCollisionContext(m_coll_context collision_context) {meta_props.collisionContext = collision_context;}
 
-void Particle::setChar(double LU, double TU, double MU) {meta_props.LU = LU; meta_props.TU = TU; meta_props.MU = MU;};
+void Particle::setChar(double LU, double TU, double MU) {meta_props.LU = LU; meta_props.TU = TU; meta_props.MU = MU;}
 
-void Particle::setHash(uint32_t hash) {meta_props.hash = hash;};
+void Particle::setHash(uint32_t hash) {
+
+    meta_props.hash = hash;
+
+    for (auto &o: meta_props.odes) {
+
+        o.hash = hash;
+
+    }
+
+}
 
 const std::variant<m_cart_state_vector, m_kep_state_vector>& Particle::getState() const {return state;}
 

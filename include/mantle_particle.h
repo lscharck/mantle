@@ -57,6 +57,7 @@ class Ode {
 	std::vector<double> y;
 	std::any particle_properties;
 	uint32_t id;
+	uint32_t hash;
 
 };
 

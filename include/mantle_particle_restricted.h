@@ -36,11 +36,9 @@ class ParticleLite {
 
 	private:
 	ParticleRestricted& p;
-	Meta meta_props;
 
 	public:
 	m_cart_state_vector& state;
-	m_cart_state_vector s;
 
 	public:
 	ParticleLite(ParticleRestricted& p);

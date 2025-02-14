@@ -190,7 +190,7 @@ m_coll_func decideCollision(const ParticleLite& p1, const ParticleLite& p2) {
 
 }
 
-void saveFile(std::vector<std::vector<ParticleHistory>>& ps) {
+void saveFile(m_history ps) {
 
     std::fstream out_file;
 
@@ -230,6 +230,7 @@ int full_test_setup() {
 
     auto hs = m.evalSim(10, 500);
 
+    std::cout << m.getCollisionLog();
     saveFile(hs);
 
     return 0;

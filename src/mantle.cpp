@@ -17,6 +17,12 @@ Mantle::Mantle(m_sim_params user_params, userParticles userFn) {
 
 }
 
+Mantle::~Mantle() {
+
+    reb_simulation_free(r);
+
+}
+
 void Mantle::setAdditionalForce(void) {
 
     has_additional_forces = true;
@@ -35,11 +41,18 @@ void Mantle::setOde(void) {
 
 }
 
+long Mantle::getCollisionLog() const {
+
+    return r->collisions_log_n;
+
+}
+
 void Mantle::initMantle(void) {
 
     r = reb_simulation_create();
     updateParams();
     particles = userParticlesFn();
+    addHash();
     if (collisionContext.has_value()) {addCollision(collisionContext.value());};
     if (has_additional_forces) {addAdditionalForce();}
     if (has_ode) {addOde();}
@@ -72,7 +85,7 @@ struct VisitState {
         p.m = m;
         p.r = rp;
         p.hash = meta.hash;
-        p.ap = (void*)&meta;
+        p.ap = const_cast<void*>(static_cast<const void*>(&meta));
 
         reb_simulation_add(r, p);
 
@@ -84,7 +97,7 @@ struct VisitState {
 
         p.r = rp;
         p.hash = meta.hash;
-        p.ap = (void*)&meta;
+        p.ap = const_cast<void*>(static_cast<const void*>(&meta));
 
         reb_simulation_add(r, p);
 
@@ -97,7 +110,7 @@ struct VisitState {
 
 };
 
-void Mantle::addParticles(void) {
+void Mantle::addParticles() {
 
     double LU = reb_sim_params.LU;
     double TU = reb_sim_params.TU;
@@ -107,13 +120,22 @@ void Mantle::addParticles(void) {
             return p1.getMass() > p2.getMass();
             });
 
-    uint32_t tmp_hash = 0;
     for (Particle &p : particles) {
 
         p.setChar(LU, TU, MU);
         p.nonDim();
-        p.setHash(tmp_hash);
         std::visit(VisitState{r, p.getMass(), p.getRadius(), p.getMeta()}, p.getState());
+
+    }
+
+}
+
+void Mantle::addHash() {
+
+    uint32_t tmp_hash = 0;
+    for (Particle &p : particles) {
+
+        p.setHash(tmp_hash);
 
         tmp_hash++;
 
@@ -121,7 +143,7 @@ void Mantle::addParticles(void) {
 
 }
 
-void Mantle::addAdditionalForce(void) {
+void Mantle::addAdditionalForce() {
 
     r->additional_forces = m_additionalForces;
 
@@ -136,18 +158,17 @@ void Mantle::addCollision(m_coll_context a) {
 
 void Mantle::addOde(void) {
 
-    std::for_each(particles.begin(), particles.end(), [r=this->r, &otp=this->ode_to_particle] (Particle& p) {
-            std::for_each(p.getODE().begin(), p.getODE().end(), [&p, &otp, r] (const Ode& ode) {
-                    struct reb_ode* ho = reb_ode_create(r,ode.y.size());
+    std::for_each(particles.begin(), particles.end(), [r=this->r] (Particle& p) {
+            std::for_each(p.getODE().begin(), p.getODE().end(), [r] (const Ode& ode) {
+                    struct reb_ode* ho = reb_ode_create(r, ode.y.size());
                     ho->derivatives = m_ode;
-                    otp.push_back(std::make_pair(ode.id, p.meta_props.hash));
-                    ho->ref = (void*)&otp.back();
+                    ho->ref = const_cast<void*>(static_cast<const void*>(&ode));
                     });
             });
 
 }
 
-std::vector<std::vector<ParticleHistory>> Mantle::evalSim(double tf, int nt) {
+m_history Mantle::evalSim(double tf, int nt) {
 
     double dt = tf / (nt * reb_sim_params.TU);
     double t = dt;
@@ -196,8 +217,8 @@ int m_collisionResolve(struct reb_simulation* r, struct reb_collision c) {
     ParticleLite p1l(p1);
     ParticleLite p2l(p2);
 
-    m_coll_context g = p1.getCollisionContext();
-    m_coll_func f = g(p1l, p2l);
+    auto g = p1.getCollisionContext();
+    auto f = g(p1l, p2l);
     int indx = f(p1l, p2l);
 
     p1.nonDim();
@@ -212,10 +233,10 @@ int m_collisionResolve(struct reb_simulation* r, struct reb_collision c) {
 
 void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y, const double t) {
 
-    std::pair<uint32_t, uint32_t>* pair = (std::pair<uint32_t, uint32_t>*)ode->ref;
+    auto pair = *static_cast<Ode*>(ode->ref);
 
-    uint32_t ode_id = std::get<0>(*pair);
-    uint32_t hash = std::get<1>(*pair);
+    uint32_t hash = pair.hash;
+    auto f = pair.ode_func;
 
     reb_particle* s = reb_simulation_particle_by_hash(ode->r, hash);
 
@@ -223,8 +244,6 @@ void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y,
 
     ParticleRestricted p(*s, t);
     p.dim();
-
-    auto f = p.meta_props.odes[ode_id].ode_func;
 
     ParticleLite pl(p);
 

@@ -10,7 +10,7 @@ REBOUND=../rebound/src
 all: clean test run_test
 
 test: test.o
-	$(CXX) -L$(REBOUND) -Wl,-rpath,../ -lrebound test.o -L$(LIBDIR) -lmantle -o test
+	$(CXX) -L$(REBOUND) -Wl,-rpath,../rebound/src/ -lrebound test.o -L$(LIBDIR) -lmantle -o test
 
 test.o: test.cpp
 	$(CXX) $(CXXFLAGS) -c test.cpp -o test.o
