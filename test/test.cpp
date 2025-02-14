@@ -25,10 +25,10 @@ m_accel f11(const ParticleLite& p1) {
     double param2 = props_1->param2;
     double mass = props_1->mass;
     double radius = props_1->radius;
-    assert(param1 == 17.8);
-    assert(param2 == 90.3);
-    assert(mass == 1.0);
-    assert(radius == 0.4);
+    assert((param1 == 17.8));
+    assert((param2 == 90.3));
+    assert((mass == 1.0));
+    assert((radius == 0.4));
 
     return m_accel(0.01, 0.02, 0.03);
 }
@@ -39,10 +39,10 @@ m_accel f12(const ParticleLite& p1) {
     double param2 = props_1->param2;
     double mass = props_1->mass;
     double radius = props_1->radius;
-    assert(param1 == 17.8);
-    assert(param2 == 90.3);
-    assert(mass == 1.0);
-    assert(radius == 0.4);
+    assert((param1 == 17.8));
+    assert((param2 == 90.3));
+    assert((mass == 1.0));
+    assert((radius == 0.4));
     return m_accel(0.01, 0.01, 0.01);
 }
 
@@ -52,10 +52,10 @@ m_accel f21(const ParticleLite& p2) {
     int param2 = props_2->param2;
     double mass = props_2->mass;
     double radius = props_2->radius;
-    assert(param1 = 45.2);
-    assert(param2 = 1);
-    assert(mass == 2.0);
-    assert(radius == 0.8);
+    assert((param1 = 45.2));
+    assert((param2 = 1));
+    assert((mass == 2.0));
+    assert((radius == 0.8));
     return m_accel(0.01, 0.01, 0.01);
 }
 
@@ -65,10 +65,10 @@ m_accel f22(const ParticleLite& p2) {
     int param2 = props_2->param2;
     double mass = props_2->mass;
     double radius = props_2->radius;
-    assert(param1 = 45.2);
-    assert(param2 = 1);
-    assert(mass == 2.0);
-    assert(radius == 0.8);
+    assert((param1 = 45.2));
+    assert((param2 = 1));
+    assert((mass == 2.0));
+    assert((radius == 0.8));
     return m_accel(0.01, 0.01, 0.01);
 }
 
@@ -78,10 +78,10 @@ void g11(double* const yDot,const ParticleLite& p1) {
     double param2 = props_1->param2;
     double mass = props_1->mass;
     double radius = props_1->radius;
-    assert(param1 == 17.8);
-    assert(param2 == 90.3);
-    assert(mass == 1.0);
-    assert(radius == 0.4);
+    assert((param1 == 17.8));
+    assert((param2 == 90.3));
+    assert((mass == 1.0));
+    assert((radius == 0.4));
     yDot[0] = 0.1;
     yDot[1] = 0.2;
 }
@@ -92,10 +92,10 @@ void g12(double* const yDot,const ParticleLite& p1) {
     double param2 = props_1->param2;
     double mass = props_1->mass;
     double radius = props_1->radius;
-    assert(param1 == 17.8);
-    assert(param2 == 90.3);
-    assert(mass == 1.0);
-    assert(radius == 0.4);
+    assert((param1 == 17.8));
+    assert((param2 == 90.3));
+    assert((mass == 1.0));
+    assert((radius == 0.4));
     yDot[0] = 0.1;
     yDot[1] = 0.2;
     yDot[3] = 0.3;
@@ -107,10 +107,10 @@ void g21(double* const yDot,const ParticleLite& p2) {
     int param2 = props_2->param2;
     double mass = props_2->mass;
     double radius = props_2->radius;
-    assert(param1 = 45.2);
-    assert(param2 = 1);
-    assert(mass == 2.0);
-    assert(radius == 0.8);
+    assert((param1 = 45.2));
+    assert((param2 = 1));
+    assert((mass == 2.0));
+    assert((radius == 0.8));
     yDot[0] = 0.1;
     yDot[1] = 0.2;
 }
@@ -121,10 +121,10 @@ void g22(double* const yDot,const ParticleLite& p2) {
     int param2 = props_2->param2;
     double mass = props_2->mass;
     double radius = props_2->radius;
-    assert(param1 = 45.2);
-    assert(param2 = 1);
-    assert(mass == 2.0);
-    assert(radius == 0.8);
+    assert((param1 = 45.2));
+    assert((param2 = 1));
+    assert((mass == 2.0));
+    assert((radius == 0.8));
     yDot[0] = 0.1;
     yDot[1] = 0.2;
     yDot[3] = 0.3;
