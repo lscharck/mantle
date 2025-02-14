@@ -147,16 +147,16 @@ void Mantle::addOde(void) {
 
 }
 
-std::vector<std::vector<ParticleRestricted>> Mantle::evalSim(double tf, int nt) {
+std::vector<std::vector<ParticleHistory>> Mantle::evalSim(double tf, int nt) {
 
     double dt = tf / (nt * reb_sim_params.TU);
     double t = dt;
 
-    std::vector<std::vector<ParticleRestricted>> state_history;
+    std::vector<std::vector<ParticleHistory>> state_history;
     for (int i = 0; i < nt; i++) {
         reb_simulation_integrate(r, t);
-        std::vector<ParticleRestricted> ps(r->N);
-        std::transform(r->particles, r->particles + r->N, ps.begin(), [t_=r->t] (auto p) {ParticleRestricted result(p, t_); result.dim(); return result;});
+        std::vector<ParticleHistory> ps(r->N);
+        std::transform(r->particles, r->particles + r->N, ps.begin(), [t_=r->t] (auto p) {ParticleHistory result(p, t_); result.dim(); return result;});
         t += dt;
         state_history.push_back(ps);
     }
@@ -172,7 +172,7 @@ void m_additionalForces(struct reb_simulation* const r) {
             liftOptional(p.getAdditionalForces(), [&] (auto as) {
                 p.dim();
                 auto accel = std::accumulate(as.begin(), as.end(), m_accel(0), [&](auto a, auto f) {return a + f(ParticleLite(p));});
-                accel *= p.TU * p.TU / p.LU;
+                accel *= p.meta_props.TU * p.meta_props.TU / p.meta_props.LU;
 
                 p.reb_p->ax = accel.ax;
                 p.reb_p->ay = accel.ay;
@@ -224,7 +224,7 @@ void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y,
     ParticleRestricted p(*s, t);
     p.dim();
 
-    auto f = p.meta_props->odes[ode_id].ode_func;
+    auto f = p.meta_props.odes[ode_id].ode_func;
 
     ParticleLite pl(p);
 

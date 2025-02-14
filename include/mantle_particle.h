@@ -55,7 +55,7 @@ class Ode {
 	public:
 	m_ode_func ode_func;
 	std::vector<double> y;
-	std::any user_properties;
+	std::any particle_properties;
 	uint32_t id;
 
 };
@@ -66,7 +66,7 @@ class Meta {
 	int collisions;
 	bool count_collisions;
 	bool collect_history;
-	std::any user_properties;
+	std::any particle_properties;
 	uint32_t hash;
 
 	std::optional<std::vector<m_force_func>> additional_forces;
@@ -79,7 +79,6 @@ class Meta {
 
 	public:
 	Meta();
-	Meta(const Meta* m);
 
 };
 
@@ -105,7 +104,7 @@ class Particle {
 	void setODE(m_ode_func func, std::vector<double> y);
 
 	template <typename T>
-	void setParticleProperties(const T& properties) {meta_props.user_properties = properties;}
+	void setParticleProperties(const T& properties) {meta_props.particle_properties = properties;}
 
 	protected:
 	void setCollisionContext(m_coll_context collision_context);
@@ -123,6 +122,37 @@ class Particle {
 	protected:
 	void dim();
 	void nonDim();
+
+};
+
+template <typename Op>
+struct Scale {
+
+    Op op;
+
+    Scale(Op o, double l, double t) : op(o), LU(l), TU(t) {}
+
+    void operator()(m_cart_state_vector& state) {
+
+        state.x = op(state.x, LU);
+        state.y = op(state.y, LU);
+        state.z = op(state.z, LU);
+        state.vx = op(state.vx, (LU / TU));
+        state.vy = op(state.vy, (LU / TU));
+        state.vz = op(state.vz, (LU / TU));
+        state.t = op(state.t, TU);
+
+    }
+
+    void operator()(m_kep_state_vector& state) {
+
+        state.a = op(state.a, LU);
+        state.t = op(state.t, TU);
+
+    }
+
+    double LU;
+    double TU;
 
 };
 

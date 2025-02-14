@@ -167,8 +167,8 @@ int elastic1D(ParticleLite& p1, ParticleLite& p2) {
     auto pr2 = p2.getParticleProperties<properties1>();
     double m2 = pr2->mass;
 
-    double v1 = p1.vx;
-    double v2 = p2.vx;
+    double v1 = p1.state.vx;
+    double v2 = p2.state.vx;
 
 
     double v21 = (m1-m2)/(m1+m2)*v1 + 2*m2/(m1+m2)*v2;
@@ -177,8 +177,8 @@ int elastic1D(ParticleLite& p1, ParticleLite& p2) {
     double dx1 = pr1->radius / 10;
     double dx2 = pr2->radius / 10;
 
-    p1.setState(p1.x-dx1, p1.y, p1.z, v21, p1.vy, p1.vz);
-    p2.setState(p2.x+dx2, p2.y, p2.z, v22, p2.vy, p2.vz);
+    p1.setState(p1.state.x-dx1, p1.state.y, p1.state.z, v21, p1.state.vy, p1.state.vz);
+    p2.setState(p2.state.x+dx2, p2.state.y, p2.state.z, v22, p2.state.vy, p2.state.vz);
 
     return 0;
 
@@ -190,7 +190,7 @@ m_coll_func decideCollision(const ParticleLite& p1, const ParticleLite& p2) {
 
 }
 
-void saveFile(std::vector<std::vector<ParticleRestricted>>& ps) {
+void saveFile(std::vector<std::vector<ParticleHistory>>& ps) {
 
     std::fstream out_file;
 
@@ -198,7 +198,8 @@ void saveFile(std::vector<std::vector<ParticleRestricted>>& ps) {
 
     for (auto pt: ps) {
         for (auto p: pt) {
-            std::print(out_file, "{:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} ", p.t, p.x, p.y, p.z, p.vx, p.vy, p.vz);
+            auto s = p.state;
+            std::print(out_file, "{:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} ", s.t, s.x, s.y, s.z, s.vx, s.vy, s.vz);
         }
         std::print(out_file, "\n");
     }

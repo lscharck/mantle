@@ -12,24 +12,13 @@ struct reb_particle;
 class ParticleRestricted {
 
 	public:
-	double x;
-	double y;
-	double z;
-	double vx;
-	double vy;
-	double vz;
-	double t;
-	double LU;
-	double TU;
-	double VU;
+	m_cart_state_vector state;
 	bool stateUpdated;
-	Meta* meta_props;
+	const Meta& meta_props;
 	struct reb_particle* reb_p;
 
 	public:
-	ParticleRestricted();
 	ParticleRestricted(struct reb_particle& p, double);
-	void setState(double x, double y, double z, double vx, double vy, double vz);
 
 	public:
 	const std::any& getParticleProperties() const;
@@ -38,8 +27,6 @@ class ParticleRestricted {
 
 	public:
 	void updateRebParticle();
-	template <typename Op>
-	void scale(Op);
 	void dim();
 	void nonDim();
 
@@ -48,16 +35,12 @@ class ParticleRestricted {
 class ParticleLite {
 
 	private:
-	ParticleRestricted* p;
+	ParticleRestricted& p;
+	Meta meta_props;
 
 	public:
-	double x;
-	double y;
-	double z;
-	double vx;
-	double vy;
-	double vz;
-	double t;
+	m_cart_state_vector& state;
+	m_cart_state_vector s;
 
 	public:
 	ParticleLite(ParticleRestricted& p);
@@ -66,9 +49,33 @@ class ParticleLite {
 
 	public:
 	template <typename T>
-	bool isType() const {return typeid(T) == p->getParticleProperties().type();}
+	bool isType() const {return typeid(T) == p.getParticleProperties().type();}
 	template <typename T>
-	std::optional<T> getParticleProperties() const {if (isType<T>()) {return std::any_cast<T>(p->getParticleProperties());} else {return std::nullopt;}}
+	std::optional<T> getParticleProperties() const {if (isType<T>()) {return std::any_cast<T>(p.getParticleProperties());} else {return std::nullopt;}}
+
+};
+
+class ParticleHistory {
+
+	private:
+	Meta meta_props;
+
+	public:
+	m_cart_state_vector state;
+
+	public:
+	ParticleHistory();
+	ParticleHistory(struct reb_particle& p, double);
+
+	public:
+	template <typename T>
+	bool isType() const {return typeid(T) == meta_props.particle_properties.type();}
+	template <typename T>
+	std::optional<T> getParticleProperties() const {if (isType<T>()) {return std::any_cast<T>(meta_props.particle_properties);} else {return std::nullopt;}}
+
+	public:
+	void dim();
+	void nonDim();
 
 };
 

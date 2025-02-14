@@ -45,7 +45,7 @@ class Mantle {
 	void setCollisionContext(m_coll_context);
 	void setOde(void);
 	void initMantle(void);
-	std::vector<std::vector<ParticleRestricted>> evalSim(double, int);
+	std::vector<std::vector<ParticleHistory>> evalSim(double, int);
 
 	private:
 	void updateParams(void);

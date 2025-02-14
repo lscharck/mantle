@@ -1,11 +1,14 @@
 #include "mantle_particle.h"
 
-Meta::Meta(void) {
+Meta::Meta() {
 
     collisions = -1;
     count_collisions = false;
     collect_history = false;
-    user_properties = NULL;
+    hash = 0;
+    LU = 1;
+    TU = 1;
+    MU = 1;
 
 }
 
@@ -67,7 +70,7 @@ void Particle::setODE(m_ode_func func, std::vector<double> y) {
     Ode ode;
     ode.ode_func = func;
     ode.y = y;
-    ode.user_properties = meta_props.user_properties;
+    ode.particle_properties = meta_props.particle_properties;
     ode.id = 0;
 
     if (!meta_props.odes.empty()) {ode.id = meta_props.odes.back().id++;}
@@ -94,40 +97,9 @@ double Particle::getRadius() const {return r;}
 
 uint32_t Particle::getHash() const {return meta_props.hash;};
 
-template <typename Op>
-struct Dim {
-
-    Op op;
-
-    Dim(Op o, double l, double t) : op(o), LU(l), TU(t) {}
-
-    void operator()(m_cart_state_vector& state) {
-
-        state.x = op(state.x, LU);
-        state.y = op(state.y, LU);
-        state.z = op(state.z, LU);
-        state.vx = op(state.vx, (LU / TU));
-        state.vy = op(state.vy, (LU / TU));
-        state.vz = op(state.vz, (LU / TU));
-        state.t = op(state.t, TU);
-
-    }
-
-    void operator()(m_kep_state_vector& state) {
-
-        state.a = op(state.a, LU);
-        state.t = op(state.t, TU);
-
-    }
-
-    double LU;
-    double TU;
-
-};
-
 void Particle::nonDim() {
 
-    Dim<std::divides<double>> dim_((std::divides<double>()), meta_props.LU, meta_props.TU);
+    Scale<std::divides<double>> dim_((std::divides<double>()), meta_props.LU, meta_props.TU);
     std::visit(dim_, state);
 
     m = m / meta_props.MU;
@@ -137,7 +109,7 @@ void Particle::nonDim() {
 
 void Particle::dim() {
 
-    Dim<std::multiplies<double>> dim_((std::multiplies<double>()), meta_props.LU, meta_props.TU);
+    Scale<std::multiplies<double>> dim_((std::multiplies<double>()), meta_props.LU, meta_props.TU);
     std::visit(dim_, state);
 
     m = m * meta_props.MU;
