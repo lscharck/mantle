@@ -211,12 +211,12 @@ void saveFile(m_history ps) {
 
 int full_test_setup() {
 
-    m_sim_params params = {0};
+    m_sim_params params;
     params.LU = 10.0;
     params.MU = 3.0;
     params.TU = 10.0;
-    params.gravity = false;
-    params.collision = true;
+    params.config.gravity = gravity_solvers::NONE;
+    params.config.collision = collision_solvers::LINE;
 
     Mantle m(params, buildParticles);
 

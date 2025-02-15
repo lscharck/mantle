@@ -10,20 +10,45 @@
 typedef std::vector<Particle> (*userParticles)();
 typedef std::vector<std::vector<ParticleHistory>> m_history;
 
+enum class gravity_solvers {BASIC, COMPENSATED, TREE, JACOBI, NONE};
+enum class collision_solvers {DIRECT, LINE, TREE, LINETREE, NONE};
+
+struct m_config {
+
+	gravity_solvers gravity;
+	collision_solvers collision;
+
+	double opening_angle2;
+	double softening;
+
+	double box_size;
+	int x_boxes;
+	int y_boxes;
+	int z_boxes;
+
+	int threads;
+
+	m_config() {
+		gravity = gravity_solvers::BASIC;
+		collision = collision_solvers::NONE;
+		opening_angle2 = 1.5;
+		softening = 0.2;
+		box_size = 1; x_boxes = 1; y_boxes = 1; z_boxes = 1;
+		threads = 1;
+	}
+
+};
+
 struct m_sim_params {
 
 	double G;
 	double MU;
 	double LU;
 	double TU;
-	double box_size;
 
-	bool gravity;
-	bool collision;
-	bool default_collision;
+	m_config config;
 
-	bool tree_gravity;
-	bool tree_collision;
+	m_sim_params() : config() {G = 1; MU = 1; LU = 1; TU = 1;}
 
 };
 

@@ -64,13 +64,53 @@ void Mantle::updateParams(void) {
 
     // override defaults with user parameters
     r->G = reb_sim_params.G;
-    if (!reb_sim_params.gravity) {r->gravity = reb_simulation::REB_GRAVITY_NONE;}
-    if (reb_sim_params.box_size > 0) {reb_simulation_configure_box(r, reb_sim_params.box_size, 1, 1, 1);}
-    if (reb_sim_params.default_collision) {r->collision = reb_simulation::REB_COLLISION_LINETREE; r->collision_resolve = reb_collision_resolve_hardsphere;}
-    if (reb_sim_params.collision) {r->collision = reb_simulation::REB_COLLISION_LINE;}
 
-    if (reb_sim_params.tree_gravity) {r->gravity = reb_simulation::REB_GRAVITY_TREE;}
-    if (reb_sim_params.tree_collision) {r->collision = reb_simulation::REB_COLLISION_TREE;}
+    switch (reb_sim_params.config.gravity) {
+        case gravity_solvers::TREE:
+            r->gravity = reb_simulation::REB_GRAVITY_TREE;
+            r->opening_angle2 = reb_sim_params.config.opening_angle2;
+            r->softening = reb_sim_params.config.softening;
+            break;
+        case gravity_solvers::COMPENSATED:
+            r->gravity = reb_simulation::REB_GRAVITY_COMPENSATED;
+            break;
+        case gravity_solvers::JACOBI:
+            r->gravity = reb_simulation::REB_GRAVITY_JACOBI;
+            break;
+        case gravity_solvers::NONE:
+            r->gravity = reb_simulation::REB_GRAVITY_NONE;
+            break;
+        default:
+    }
+
+    switch (reb_sim_params.config.collision) {
+        case collision_solvers::DIRECT:
+            r->collision = reb_simulation::REB_COLLISION_DIRECT;
+            r->collision_resolve = reb_collision_resolve_hardsphere;
+            break;
+        case collision_solvers::LINE:
+            r->collision = reb_simulation::REB_COLLISION_LINE;
+            r->collision_resolve = reb_collision_resolve_hardsphere;
+            break;
+        case collision_solvers::LINETREE:
+            r->collision = reb_simulation::REB_COLLISION_LINETREE;
+            r->collision_resolve = reb_collision_resolve_hardsphere;
+            break;
+        case collision_solvers::TREE:
+            r->collision = reb_simulation::REB_COLLISION_TREE;
+            r->collision_resolve = reb_collision_resolve_hardsphere;
+            break;
+        default:
+    }
+
+    if ((reb_sim_params.config.gravity == gravity_solvers::TREE)
+            || (reb_sim_params.config.collision == collision_solvers::TREE)
+            || (reb_sim_params.config.collision == collision_solvers::LINETREE)) {
+        reb_simulation_configure_box(r, reb_sim_params.config.box_size,
+                reb_sim_params.config.x_boxes, reb_sim_params.config.y_boxes,
+                reb_sim_params.config.z_boxes);
+//        omp_set_num_threads(reb_sim_params.config.threads);
+    }
 
 }
 
