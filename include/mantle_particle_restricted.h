@@ -14,7 +14,7 @@ class ParticleRestricted {
 	public:
 	m_cart_state_vector state;
 	bool stateUpdated;
-	const Meta& meta_props;
+	Meta& meta_props;
 	struct reb_particle* reb_p;
 
 	public:
@@ -26,6 +26,7 @@ class ParticleRestricted {
 	const std::optional<std::vector<m_force_func>>& getAdditionalForces() const;
 
 	public:
+	void incCollision() {meta_props.incCollision();}
 	void updateRebParticle();
 	void dim();
 	void nonDim();
@@ -70,6 +71,7 @@ class ParticleHistory {
 	bool isType() const {return typeid(T) == meta_props.particle_properties.type();}
 	template <typename T>
 	std::optional<T> getParticleProperties() const {if (isType<T>()) {return std::any_cast<T>(meta_props.particle_properties);} else {return std::nullopt;}}
+	int getCollisionLog() const {return meta_props.getCollisionLog();}
 
 	public:
 	void dim();

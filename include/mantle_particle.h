@@ -80,6 +80,8 @@ class Meta {
 
 	public:
 	Meta();
+	void incCollision() {if (count_collisions) {collisions++;}}
+	int getCollisionLog() const {return collisions;}
 
 };
 

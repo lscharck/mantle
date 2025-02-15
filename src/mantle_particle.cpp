@@ -2,7 +2,7 @@
 
 Meta::Meta() {
 
-    collisions = -1;
+    collisions = 0;
     count_collisions = false;
     collect_history = false;
     hash = 0;

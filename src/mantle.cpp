@@ -227,6 +227,10 @@ int m_collisionResolve(struct reb_simulation* r, struct reb_collision c) {
     p1.updateRebParticle();
     p2.updateRebParticle();
 
+    p1.incCollision();
+    p2.incCollision();
+    r->collisions_log_n++;
+
     return indx;
 
 }
