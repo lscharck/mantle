@@ -4,6 +4,9 @@
 #include <functional>
 #include <numeric>
 #include <any>
+#ifdef OPENMP
+#include <opm.h>
+#endif
 #include "mantle_particle.h"
 #include "mantle_particle_restricted.h"
 
@@ -12,11 +15,14 @@ typedef std::vector<std::vector<ParticleHistory>> m_history;
 
 enum class gravity_solvers {BASIC, COMPENSATED, TREE, JACOBI, NONE};
 enum class collision_solvers {DIRECT, LINE, TREE, LINETREE, NONE};
+enum class integrators {IAS15, WHFAST, LEAPFROG, SEI, NONE};
 
 struct m_config {
 
 	gravity_solvers gravity;
 	collision_solvers collision;
+	integrators integrator;
+	double dt;
 
 	double opening_angle2;
 	double softening;
@@ -31,10 +37,12 @@ struct m_config {
 	m_config() {
 		gravity = gravity_solvers::BASIC;
 		collision = collision_solvers::NONE;
+		integrator = integrators::IAS15;
 		opening_angle2 = 1.5;
 		softening = 0.2;
 		box_size = 1; x_boxes = 1; y_boxes = 1; z_boxes = 1;
 		threads = 1;
+		dt = -1;
 	}
 
 };
@@ -48,7 +56,7 @@ struct m_sim_params {
 
 	m_config config;
 
-	m_sim_params() : config() {G = 1; MU = 1; LU = 1; TU = 1;}
+	m_sim_params() : config() {G = 1.0; MU = 1.0; LU = 1.0; TU = 1.0;}
 
 };
 

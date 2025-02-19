@@ -11,6 +11,12 @@ LIB=$(LIBDIR)/libmantle.a
 REBOUNDDIR=rebound
 REBOUNDINC=$(REBOUNDDIR)/src
 
+SET_OPENMP = 0
+
+ifeq (SET_OPENMP, 1)
+	CXXFLAGS += -DOPENMP
+endif
+
 all: rebound $(LIB)
 
 release: CFLAGS=-O2 -DNDEBUG -Werror -std=c++23 -pedantic -Wall

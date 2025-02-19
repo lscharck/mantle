@@ -6,9 +6,9 @@ Meta::Meta() {
     count_collisions = false;
     collect_history = false;
     hash = 0;
-    LU = 1;
-    TU = 1;
-    MU = 1;
+    LU = 1.0;
+    TU = 1.0;
+    MU = 1.0;
 
 }
 

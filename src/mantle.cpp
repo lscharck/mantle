@@ -81,6 +81,7 @@ void Mantle::updateParams(void) {
             r->gravity = reb_simulation::REB_GRAVITY_NONE;
             break;
         default:
+            break;
     }
 
     switch (reb_sim_params.config.collision) {
@@ -101,6 +102,21 @@ void Mantle::updateParams(void) {
             r->collision_resolve = reb_collision_resolve_hardsphere;
             break;
         default:
+            break;
+    }
+
+    switch (reb_sim_params.config.integrator) {
+        case integrators::WHFAST:
+            r->integrator = reb_simulation::REB_INTEGRATOR_WHFAST;
+            break;
+        case integrators::SEI:
+            r->integrator = reb_simulation::REB_INTEGRATOR_SEI;
+            break;
+        case integrators::LEAPFROG:
+            r->integrator = reb_simulation::REB_INTEGRATOR_LEAPFROG;
+            break;
+        default:
+            break;
     }
 
     if ((reb_sim_params.config.gravity == gravity_solvers::TREE)
@@ -109,7 +125,13 @@ void Mantle::updateParams(void) {
         reb_simulation_configure_box(r, reb_sim_params.config.box_size,
                 reb_sim_params.config.x_boxes, reb_sim_params.config.y_boxes,
                 reb_sim_params.config.z_boxes);
-//        omp_set_num_threads(reb_sim_params.config.threads);
+#ifdef OPENMP
+        omp_set_num_threads(reb_sim_params.config.threads);
+#endif
+    }
+
+    if (reb_sim_params.config.dt > 0) {
+        r->dt = reb_sim_params.config.dt;
     }
 
 }
