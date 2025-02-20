@@ -66,7 +66,7 @@ class Mantle {
 	private:
 	reb_simulation* r;
 	m_sim_params reb_sim_params;
-	userParticles userParticlesFn;
+	std::optional<userParticles> userParticlesFn;
 	std::vector<Particle> particles;
 	std::optional<m_coll_context> collisionContext;
 	bool has_additional_forces;
@@ -74,6 +74,7 @@ class Mantle {
 
 	public:
 	Mantle(m_sim_params, userParticles);
+	Mantle(m_sim_params, std::vector<Particle>);
 	~Mantle();
 	void setAdditionalForce();
 	void setCollisionContext(m_coll_context);

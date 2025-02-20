@@ -17,6 +17,15 @@ Mantle::Mantle(m_sim_params user_params, userParticles userFn) {
 
 }
 
+Mantle::Mantle(m_sim_params user_params, std::vector<Particle> userParticles) {
+
+    reb_sim_params = user_params;
+    has_additional_forces = false;
+    has_ode = false;
+    particles = userParticles;
+
+}
+
 Mantle::~Mantle() {
 
     reb_simulation_free(r);
@@ -51,7 +60,7 @@ void Mantle::initMantle(void) {
 
     r = reb_simulation_create();
     updateParams();
-    particles = userParticlesFn();
+    if (userParticlesFn.has_value()) {auto f = userParticlesFn.value(); particles = f();}
     addHash();
     if (collisionContext.has_value()) {addCollision(collisionContext.value());};
     if (has_additional_forces) {addAdditionalForce();}
