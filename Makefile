@@ -13,7 +13,7 @@ REBOUNDINC=$(REBOUNDDIR)/src
 
 SET_OPENMP = 0
 
-ifeq (SET_OPENMP, 1)
+ifeq ($(SET_OPENMP), 1)
 	CXXFLAGS += -DOPENMP
 endif
 
@@ -23,10 +23,10 @@ release: CFLAGS=-O2 -DNDEBUG -Werror -std=c++23 -pedantic -Wall
 release: clean
 release: $(LIB)
 
-$(LIBDIR)/libmantle.a: $(OBJ)/mantle.o $(OBJ)/mantle_particle.o
+$(LIBDIR)/libmantle.a: $(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(SRC)/mantle_particle_restricted.o
 	ar rvs $(LIBDIR)/libmantle.a $(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(OBJ)/mantle_particle_restricted.o
 
-$(OBJ)/mantle.o $(OBJ)/mantle_particle.o: $(SRC)/mantle.cpp $(SRC)/mantle_particle.cpp
+$(OBJ)/mantle.o $(OBJ)/mantle_particle.o: $(SRC)/mantle.cpp $(SRC)/mantle_particle.cpp $(SRC)/mantle_particle_restricted.cpp
 	$(CXX) $(CXXFLAGS) -c $(SRC)/mantle_particle.cpp -o $(OBJ)/mantle_particle.o
 	$(CXX) $(CXXFLAGS) -c $(SRC)/mantle_particle_restricted.cpp -o $(OBJ)/mantle_particle_restricted.o
 	$(CXX) $(CXXFLAGS) -c $(SRC)/mantle.cpp -o $(OBJ)/mantle.o
