@@ -7,6 +7,8 @@
 #include <vector>
 #include <functional>
 #include <any>
+#include <iostream>
+#include <fstream>
 
 struct m_accel {
 
@@ -61,6 +63,17 @@ class Ode {
 
 };
 
+class LUTManager {
+
+	public:
+	std::vector<std::pair<std::fstream, int>> LUTs;
+
+	public:
+	void addLUT(std::string);
+	const std::fstream& getLUT(int) const;
+
+};
+
 class Meta {
 
 	public:
@@ -72,7 +85,7 @@ class Meta {
 
 	std::optional<std::vector<m_force_func>> additional_forces;
 	m_coll_context collisionContext;
-	std::vector<Ode> odes;
+	std::optional<std::vector<Ode>> odes;
 
 	double LU;
 	double TU;
@@ -82,6 +95,8 @@ class Meta {
 	Meta();
 	void incCollision() {if (count_collisions) {collisions++;}}
 	int getCollisionLog() const {return collisions;}
+	bool collectHistory() const {return collect_history;}
+	const std::optional<std::reference_wrapper<std::vector<Ode>>> getOdes() {if (odes.has_value()) {return std::ref(odes.value());} else {return std::nullopt;}}
 
 };
 
@@ -101,26 +116,27 @@ class Particle {
 	Particle(double mass, double radius);
 	void setStateCart(double x, double y, double z, double vx, double vy, double vz);
 	void setStateKep(double a, double e, double inc, double Omega, double omega, double f);
-	void setCollisionTracker();
-	void setHistoryTracker();
-	void setAdditionalForces(std::vector<m_force_func> function_array);
-	void setODE(m_ode_func func, std::vector<double> y);
+	void setCollisionTracker(void) {meta_props.count_collisions = true;}
+	void setHistoryTracker(void) {meta_props.collect_history = true;}
+	void setAdditionalForces(std::vector<m_force_func> function_array) {meta_props.additional_forces = function_array;}
+	void setOde(m_ode_func func, std::vector<double> y);
 
 	template <typename T>
 	void setParticleProperties(const T& properties) {meta_props.particle_properties = properties;}
 
 	protected:
-	void setCollisionContext(m_coll_context collision_context);
-	void setChar(double, double, double);
+	void setCollisionContext(m_coll_context collision_context) {meta_props.collisionContext = collision_context;}
+	void setChar(double LU, double TU, double MU) {meta_props.LU = LU; meta_props.TU = TU; meta_props.MU = MU;}
 	void setHash(uint32_t);
 
 	protected:
-	const std::variant<m_cart_state_vector, m_kep_state_vector>& getState() const;
-	const Meta& getMeta() const;
-	const std::vector<Ode>& getODE() const;
-	double getMass() const;
-	double getRadius() const;
-	uint32_t getHash() const;
+	const std::variant<m_cart_state_vector, m_kep_state_vector>& getState() const {return state;}
+	const Meta& getMeta() const {return meta_props;}
+	double getMass() const {return m;}
+	double getRadius() const {return r;}
+	const std::optional<std::reference_wrapper<std::vector<Ode>>> getOdes() {return meta_props.getOdes();}
+	uint32_t getHash() const {return meta_props.hash;}
+
 
 	protected:
 	void dim();

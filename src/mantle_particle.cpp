@@ -47,25 +47,7 @@ void Particle::setStateKep(double a, double e, double inc, double Omega, double 
 
 }
 
-void Particle::setCollisionTracker(void) {
-
-    meta_props.count_collisions = true;
-
-}
-
-void Particle::setHistoryTracker(void) {
-
-    meta_props.collect_history = true;
-
-}
-
-void Particle::setAdditionalForces(std::vector<m_force_func> function_array) {
-
-    meta_props.additional_forces = function_array;
-
-}
-
-void Particle::setODE(m_ode_func func, std::vector<double> y) {
+void Particle::setOde(m_ode_func func, std::vector<double> y) {
 
     Ode ode;
     ode.ode_func = func;
@@ -73,39 +55,32 @@ void Particle::setODE(m_ode_func func, std::vector<double> y) {
     ode.particle_properties = meta_props.particle_properties;
     ode.id = 0;
 
-    if (!meta_props.odes.empty()) {ode.id = meta_props.odes.back().id++;}
+    if (!meta_props.odes.has_value()) {
+        meta_props.odes = std::vector<Ode>{};
+    }
+    else {
+        ode.id = meta_props.odes.value().back().id++;
+    }
 
-    meta_props.odes.push_back(ode);
+    meta_props.odes.value().push_back(ode);
 
 }
-
-void Particle::setCollisionContext(m_coll_context collision_context) {meta_props.collisionContext = collision_context;}
-
-void Particle::setChar(double LU, double TU, double MU) {meta_props.LU = LU; meta_props.TU = TU; meta_props.MU = MU;}
 
 void Particle::setHash(uint32_t hash) {
 
     meta_props.hash = hash;
 
-    for (auto &o: meta_props.odes) {
+    auto odes = meta_props.getOdes();
+    if (odes.has_value()) {
+        for (auto &o: odes.value().get()) {
 
-        o.hash = hash;
+            o.hash = hash;
+
+        }
 
     }
 
 }
-
-const std::variant<m_cart_state_vector, m_kep_state_vector>& Particle::getState() const {return state;}
-
-const Meta& Particle::getMeta() const {return meta_props;}
-
-const std::vector<Ode>& Particle::getODE() const {return meta_props.odes;}
-
-double Particle::getMass() const {return m;}
-
-double Particle::getRadius() const {return r;}
-
-uint32_t Particle::getHash() const {return meta_props.hash;};
 
 void Particle::nonDim() {
 

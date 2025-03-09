@@ -227,14 +227,16 @@ void Mantle::addCollision(m_coll_context a) {
 
 }
 
-void Mantle::addOde(void) {
+void Mantle::addOde() {
 
     std::for_each(particles.begin(), particles.end(), [r=this->r] (Particle& p) {
-            std::for_each(p.getODE().begin(), p.getODE().end(), [r] (const Ode& ode) {
-                    struct reb_ode* ho = reb_ode_create(r, ode.y.size());
-                    ho->derivatives = m_ode;
-                    ho->ref = const_cast<void*>(static_cast<const void*>(&ode));
-                    });
+            liftOptional(p.getOdes(), [r] (auto odes) {
+                std::for_each(odes.get().begin(), odes.get().end(), [r] (const Ode& ode) {
+                        struct reb_ode* ho = reb_ode_create(r, ode.y.size());
+                        ho->derivatives = m_ode;
+                        ho->ref = const_cast<void*>(static_cast<const void*>(&ode));
+                        });
+                });
             });
 
 }
@@ -242,15 +244,17 @@ void Mantle::addOde(void) {
 m_history Mantle::evalSim(double tf, int nt) {
 
     double dt = tf / (nt * reb_sim_params.TU);
-    double t = dt;
+    double t = 0.0;
 
     std::vector<std::vector<ParticleHistory>> state_history;
-    for (int i = 0; i < nt; i++) {
+    for (int i = 0; i <= nt; i++) {
         reb_simulation_integrate(r, t);
+        std::vector<ParticleHistory> tmp_ps(r->N);
         std::vector<ParticleHistory> ps(r->N);
-        std::transform(r->particles, r->particles + r->N, ps.begin(), [t_=r->t] (auto p) {ParticleHistory result(p, t_); result.dim(); return result;});
-        t += dt;
+        std::transform(r->particles, r->particles + r->N, tmp_ps.begin(), [t_=r->t] (auto p) {ParticleHistory result(p, t_); result.dim(); return result;});
+        std::copy_if(tmp_ps.begin(), tmp_ps.end(), ps.begin(), [](auto p) {return p.collectHistory();});
         state_history.push_back(ps);
+        t += dt;
     }
 
     return state_history;
@@ -276,7 +280,6 @@ void m_additionalForces(struct reb_simulation* const r) {
 
 }
 
-// this function calls the specific collision function per particle
 int m_collisionResolve(struct reb_simulation* r, struct reb_collision c) {
 
     ParticleRestricted p1(r->particles[c.p1], r->t);

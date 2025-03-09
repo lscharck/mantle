@@ -140,8 +140,8 @@ std::vector<Particle> buildParticles() {
     properties1 props1 = {.param1 = 17.8, .param2 = 90.3, .mass=mass1, .radius=radius1};
     p1.setParticleProperties(props1);
     p1.setAdditionalForces({f11, f12});
-    p1.setODE(g11, {0.0, 0.0});
-    p1.setODE(g12, {0.0, 0.0, 0.0});
+    p1.setOde(g11, {0.0, 0.0});
+    p1.setOde(g12, {0.0, 0.0, 0.0});
 
     double mass2 = 2.0;
     double radius2 = 0.8;
@@ -152,8 +152,8 @@ std::vector<Particle> buildParticles() {
     properties2 props2 = {.param1 = 45.2, .param2 = 1, .mass=mass2, .radius=radius2};
     p2.setParticleProperties(props2);
     p2.setAdditionalForces({f21, f22});
-    p2.setODE(g21, {0.0, 0.0});
-    p2.setODE(g22, {0.0, 0.0, 0.0});
+    p2.setOde(g21, {0.0, 0.0});
+    p2.setOde(g22, {0.0, 0.0, 0.0});
 
     std::vector<Particle> ps = {p1, p2};
 

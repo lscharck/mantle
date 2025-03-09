@@ -23,7 +23,7 @@ release: CFLAGS=-O2 -DNDEBUG -Werror -std=c++23 -pedantic -Wall
 release: clean
 release: $(LIB)
 
-$(LIBDIR)/libmantle.a: $(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(SRC)/mantle_particle_restricted.o
+$(LIBDIR)/libmantle.a: $(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(OBJ)/mantle_particle_restricted.o
 	ar rvs $(LIBDIR)/libmantle.a $(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(OBJ)/mantle_particle_restricted.o
 
 $(OBJ)/mantle.o $(OBJ)/mantle_particle.o: $(SRC)/mantle.cpp $(SRC)/mantle_particle.cpp $(SRC)/mantle_particle_restricted.cpp

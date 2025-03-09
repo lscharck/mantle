@@ -72,6 +72,7 @@ class ParticleHistory {
 	template <typename T>
 	std::optional<T> getParticleProperties() const {if (isType<T>()) {return std::any_cast<T>(meta_props.particle_properties);} else {return std::nullopt;}}
 	int getCollisionLog() const {return meta_props.getCollisionLog();}
+	bool collectHistory() const {return meta_props.collectHistory();}
 
 	public:
 	void dim();
