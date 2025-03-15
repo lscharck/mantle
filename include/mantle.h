@@ -23,6 +23,7 @@ struct m_config {
 	collision_solvers collision;
 	integrators integrator;
 	double dt;
+	int active;
 
 	double opening_angle2;
 	double softening;
@@ -43,6 +44,7 @@ struct m_config {
 		box_size = 1; x_boxes = 1; y_boxes = 1; z_boxes = 1;
 		threads = 1;
 		dt = -1;
+		active = -1;
 	}
 
 };

@@ -43,7 +43,7 @@ m_accel f12(const ParticleLite& p1) {
     assert((param2 == 90.3));
     assert((mass == 1.0));
     assert((radius == 0.4));
-    return m_accel(0.01, 0.01, 0.01);
+    return m_accel(-0.01, -0.02, -0.03);
 }
 
 m_accel f21(const ParticleLite& p2) {
@@ -69,7 +69,7 @@ m_accel f22(const ParticleLite& p2) {
     assert((param2 = 1));
     assert((mass == 2.0));
     assert((radius == 0.8));
-    return m_accel(0.01, 0.01, 0.01);
+    return m_accel(-0.01, -0.01, -0.01);
 }
 
 void g11(double* const yDot,const ParticleLite& p1) {

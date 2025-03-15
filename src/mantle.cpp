@@ -143,6 +143,10 @@ void Mantle::updateParams(void) {
         r->dt = reb_sim_params.config.dt;
     }
 
+    if (reb_sim_params.config.active > 0) {
+        r->N_active = reb_sim_params.config.active;
+    }
+
 }
 
 struct VisitState {
@@ -217,6 +221,7 @@ void Mantle::addHash() {
 void Mantle::addAdditionalForce() {
 
     r->additional_forces = m_additionalForces;
+    r->force_is_velocity_dependent = 1;
 
 }
 
@@ -250,8 +255,10 @@ m_history Mantle::evalSim(double tf, int nt) {
     for (int i = 0; i <= nt; i++) {
         reb_simulation_integrate(r, t);
         std::vector<ParticleHistory> tmp_ps(r->N);
-        std::vector<ParticleHistory> ps(r->N);
         std::transform(r->particles, r->particles + r->N, tmp_ps.begin(), [t_=r->t] (auto p) {ParticleHistory result(p, t_); result.dim(); return result;});
+
+        int count = std::count_if(tmp_ps.begin(), tmp_ps.end(), [](auto p) {return p.collectHistory();});
+        std::vector<ParticleHistory> ps(count);
         std::copy_if(tmp_ps.begin(), tmp_ps.end(), ps.begin(), [](auto p) {return p.collectHistory();});
         state_history.push_back(ps);
         t += dt;
@@ -263,16 +270,16 @@ m_history Mantle::evalSim(double tf, int nt) {
 
 void m_additionalForces(struct reb_simulation* const r) {
 
-    std::for_each(r->particles, r->particles + r->N, [t=r->t] (auto rp) {
+    std::for_each(r->particles, r->particles + r->N, [t=r->t] (struct reb_particle& rp) {
             ParticleRestricted p(rp, t);
-            liftOptional(p.getAdditionalForces(), [&] (auto as) {
+            liftOptional(p.getAdditionalForces(), [&] (std::vector<m_force_func>& as) {
                 p.dim();
                 auto accel = std::accumulate(as.begin(), as.end(), m_accel(0), [&](auto a, auto f) {return a + f(ParticleLite(p));});
                 accel *= p.meta_props.TU * p.meta_props.TU / p.meta_props.LU;
 
-                p.reb_p->ax = accel.ax;
-                p.reb_p->ay = accel.ay;
-                p.reb_p->az = accel.az;
+                p.reb_p->ax += accel.ax;
+                p.reb_p->ay += accel.ay;
+                p.reb_p->az += accel.az;
 
             });
 

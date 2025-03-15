@@ -3,7 +3,7 @@ extern "C" {
 	#include "rebound.h"
 }
 
-ParticleRestricted::ParticleRestricted(struct reb_particle &p, double t_) : meta_props(*static_cast<Meta*>(p.ap)) {
+ParticleRestricted::ParticleRestricted(struct reb_particle& p, double t_) : meta_props(*static_cast<Meta*>(p.ap)) {
 
     state = {.x = p.x, .y = p.y, .z = p.z, .vx = p.vx, .vy = p.vy, .vz = p.vz, .t = t_};
 
