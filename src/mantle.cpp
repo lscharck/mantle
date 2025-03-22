@@ -275,11 +275,11 @@ void m_additionalForces(struct reb_simulation* const r) {
             liftOptional(p.getAdditionalForces(), [&] (std::vector<m_force_func>& as) {
                 p.dim();
                 auto accel = std::accumulate(as.begin(), as.end(), m_accel(0), [&](auto a, auto f) {return a + f(ParticleLite(p));});
-                accel *= p.meta_props.TU * p.meta_props.TU / p.meta_props.LU;
+                auto scale_accel = accel * (p.meta_props.TU * p.meta_props.TU / p.meta_props.LU);
 
-                p.reb_p->ax += accel.ax;
-                p.reb_p->ay += accel.ay;
-                p.reb_p->az += accel.az;
+                p.reb_p->ax += scale_accel.ax;
+                p.reb_p->ay += scale_accel.ay;
+                p.reb_p->az += scale_accel.az;
 
             });
 

@@ -106,11 +106,11 @@ m_accel operator+(const m_accel& t, const m_accel& u) {
     return {.ax = t.ax + u.ax, .ay = t.ay + u.ay, .az = t.az + u.az};
 }
 
-m_accel operator*=(double s, const m_accel& u) {
+m_accel operator*(double s, const m_accel& u) {
     return {.ax = s*u.ax, .ay = s*u.ay, .az = s*u.az};
 }
 
-m_accel operator*=(const m_accel& u, double s) {
+m_accel operator*(const m_accel& u, double s) {
     return {.ax = s*u.ax, .ay = s*u.ay, .az = s*u.az};
 }
 

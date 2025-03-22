@@ -17,8 +17,8 @@ struct m_accel {
 	double az;
 
 	friend m_accel operator+(const m_accel& a, const m_accel& b);
-	friend m_accel operator*=(double s, const m_accel& a);
-	friend m_accel operator*=(const m_accel& a, double s);
+	friend m_accel operator*(double s, const m_accel& a);
+	friend m_accel operator*(const m_accel& a, double s);
 
 };
 
