@@ -220,7 +220,11 @@ void Mantle::addHash() {
 
 void Mantle::addAdditionalForce() {
 
+#ifdef OPENMP
+    r->additional_forces = m_additionalForcesPar;
+#else
     r->additional_forces = m_additionalForces;
+#endif
     r->force_is_velocity_dependent = 1;
 
 }
@@ -265,6 +269,25 @@ m_history Mantle::evalSim(double tf, int nt) {
     }
 
     return state_history;
+
+}
+
+void m_additionalForcesPar(struct reb_simulation* const r) {
+
+    for (uint32_t i = 0; i < r->N; i++) {
+            ParticleRestricted p(std::ref(r->particles[i]), r->t);
+            liftOptional(p.getAdditionalForces(), [&] (std::vector<m_force_func>& as) {
+                p.dim();
+                auto accel = std::accumulate(as.begin(), as.end(), m_accel(0), [&](auto a, auto f) {return a + f(ParticleLite(p));});
+                auto scale_accel = accel * (p.meta_props.TU * p.meta_props.TU / p.meta_props.LU);
+
+                p.reb_p->ax += scale_accel.ax;
+                p.reb_p->ay += scale_accel.ay;
+                p.reb_p->az += scale_accel.az;
+
+            });
+
+        }
 
 }
 

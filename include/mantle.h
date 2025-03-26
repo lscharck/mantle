@@ -5,7 +5,7 @@
 #include <numeric>
 #include <any>
 #ifdef OPENMP
-#include <opm.h>
+#include <omp.h>
 #endif
 #include "mantle_particle.h"
 #include "mantle_particle_restricted.h"
@@ -96,6 +96,8 @@ class Mantle {
 	void addOde();
 
 };
+
+void m_additionalForcesPar(struct reb_simulation* const);
 
 void m_additionalForces(struct reb_simulation* const);
 

@@ -14,7 +14,7 @@ REBOUNDINC=$(REBOUNDDIR)/src
 SET_OPENMP = 0
 
 ifeq ($(SET_OPENMP), 1)
-	CXXFLAGS += -DOPENMP
+	OPT+= -fopenmp
 endif
 
 all: rebound $(LIB)
@@ -29,7 +29,7 @@ $(LIBDIR)/libmantle.a: $(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(OBJ)/mantle_pa
 $(OBJ)/mantle.o $(OBJ)/mantle_particle.o: $(SRC)/mantle.cpp $(SRC)/mantle_particle.cpp $(SRC)/mantle_particle_restricted.cpp
 	$(CXX) $(CXXFLAGS) -c $(SRC)/mantle_particle.cpp -o $(OBJ)/mantle_particle.o
 	$(CXX) $(CXXFLAGS) -c $(SRC)/mantle_particle_restricted.cpp -o $(OBJ)/mantle_particle_restricted.o
-	$(CXX) $(CXXFLAGS) -c $(SRC)/mantle.cpp -o $(OBJ)/mantle.o
+	$(CXX) $(CXXFLAGS) -c $(OPT) $(SRC)/mantle.cpp -o $(OBJ)/mantle.o
 
 rebound:
 	echo "Building rebound"
