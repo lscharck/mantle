@@ -26,7 +26,7 @@ release: $(LIB)
 $(LIBDIR)/libmantle.a: $(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(OBJ)/mantle_particle_restricted.o
 	ar rvs $(LIBDIR)/libmantle.a $(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(OBJ)/mantle_particle_restricted.o
 
-$(OBJ)/mantle.o $(OBJ)/mantle_particle.o: $(SRC)/mantle.cpp $(SRC)/mantle_particle.cpp $(SRC)/mantle_particle_restricted.cpp
+$(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(OBJ)/mantle_particle_restricted.o: $(SRC)/mantle.cpp $(SRC)/mantle_particle.cpp $(SRC)/mantle_particle_restricted.cpp
 	$(CXX) $(CXXFLAGS) -c $(SRC)/mantle_particle.cpp -o $(OBJ)/mantle_particle.o
 	$(CXX) $(CXXFLAGS) -c $(SRC)/mantle_particle_restricted.cpp -o $(OBJ)/mantle_particle_restricted.o
 	$(CXX) $(CXXFLAGS) -c $(OPT) $(SRC)/mantle.cpp -o $(OBJ)/mantle.o
