@@ -14,14 +14,14 @@ REBOUNDINC=$(REBOUNDDIR)/src
 SET_OPENMP = 0
 
 ifeq ($(SET_OPENMP), 1)
-	OPT+= -fopenmp
+	CXXFLAGS+=-fopenmp
 endif
 
 all: rebound $(LIB)
 
-release: CFLAGS=-O2 -DNDEBUG -Werror -std=c++23 -pedantic -Wall
+release: CXXFLAGS=-O2 -DNDEBUG -Werror -std=c++23 -pedantic -Wall -I$(INC) -I$(REBOUNDINC)
 release: clean
-release: $(LIB)
+release: rebound $(LIB)
 
 $(LIBDIR)/libmantle.a: $(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(OBJ)/mantle_particle_restricted.o
 	ar rvs $(LIBDIR)/libmantle.a $(OBJ)/mantle.o $(OBJ)/mantle_particle.o $(OBJ)/mantle_particle_restricted.o

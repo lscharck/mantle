@@ -276,7 +276,7 @@ void m_additionalForcesPar(struct reb_simulation* const r) {
 
 #pragma omp parallel for
     for (uint32_t i = 0; i < r->N; i++) {
-            ParticleRestricted p(std::ref(r->particles[i]), r->t);
+            ParticleRestricted p(r->particles[i], r->t);
             liftOptional(p.getAdditionalForces(), [&] (std::vector<m_force_func>& as) {
                 p.dim();
                 auto accel = std::accumulate(as.begin(), as.end(), m_accel(0), [&](auto a, auto f) {return a + f(ParticleLite(p));});
