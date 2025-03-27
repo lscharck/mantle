@@ -7,10 +7,15 @@ LIB=$(LIBDIR)/libmantle.a
 
 REBOUND=../rebound/src
 
+SET_OPENMP = 0
+ifeq ($(SET_OPENMP), 1)
+	OPT=-fopenmp
+endif
+
 all: clean test run_test
 
 test: test.o
-	$(CXX) -L$(REBOUND) -Wl,-rpath,../rebound/src/ -lrebound test.o -L$(LIBDIR) -lmantle -o test
+	$(CXX) -L$(REBOUND) $(OPT) -Wl,-rpath,../rebound/src/ -lrebound test.o -L$(LIBDIR) -lmantle -o test
 
 test.o: test.cpp
 	$(CXX) $(CXXFLAGS) -c test.cpp -o test.o

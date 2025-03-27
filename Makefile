@@ -14,7 +14,9 @@ REBOUNDINC=$(REBOUNDDIR)/src
 SET_OPENMP = 0
 
 ifeq ($(SET_OPENMP), 1)
-	CXXFLAGS+=-fopenmp
+	OPT=-DOPENMP
+	OPT+=-fopenmp
+	export OPENMP=1
 endif
 
 all: rebound $(LIB)
@@ -37,7 +39,7 @@ rebound:
 
 test:
 	echo "Building test"
-	$(MAKE) -C $(TESTDIR)
+	$(MAKE) -C $(TESTDIR) SET_OPENMP=$(SET_OPENMP) CXX=$(CXX)
 
 clean:
 	$(RM) -r $(LIBDIR)/* $(OBJ)/*
