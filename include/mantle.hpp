@@ -7,8 +7,8 @@
 #ifdef OPENMP
 #include <omp.h>
 #endif
-#include "mantle_particle.h"
-#include "mantle_particle_restricted.h"
+#include "mantle_particle.hpp"
+#include "mantle_particle_restricted.hpp"
 
 typedef std::vector<Particle> (*userParticles)();
 typedef std::vector<std::vector<ParticleHistory>> m_history;

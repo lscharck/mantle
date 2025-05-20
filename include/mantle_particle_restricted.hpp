@@ -6,7 +6,7 @@
 #include <optional>
 #include <vector>
 #include <any>
-#include "mantle_particle.h"
+#include "mantle_particle.hpp"
 
 struct reb_particle;
 class ParticleRestricted {

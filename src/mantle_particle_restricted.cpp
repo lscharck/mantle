@@ -1,4 +1,4 @@
-#include "mantle_particle_restricted.h"
+#include "mantle_particle_restricted.hpp"
 extern "C" {
 	#include "rebound.h"
 }
@@ -13,7 +13,7 @@ ParticleRestricted::ParticleRestricted(struct reb_particle& p, double t_) : meta
 
 const std::any& ParticleRestricted::getParticleProperties() const {return meta_props.particle_properties;}
 
-const m_coll_context& ParticleRestricted::getCollisionContext() const {return meta_props.collisionContext;}
+const m_coll_context& ParticleRestricted::getCollisionContext() const {return meta_props.collision_context;}
 
 const std::optional<std::vector<m_force_func>>& ParticleRestricted::getAdditionalForces() const {return meta_props.additional_forces;}
 

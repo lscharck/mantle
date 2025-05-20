@@ -1,4 +1,4 @@
-#include "mantle_particle.h"
+#include "mantle_particle.hpp"
 
 Meta::Meta() {
 

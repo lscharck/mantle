@@ -1,4 +1,4 @@
-#include "mantle.h"
+#include "mantle.hpp"
 extern "C" {
 	#include "rebound.h"
 }

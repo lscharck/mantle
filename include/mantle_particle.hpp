@@ -84,7 +84,7 @@ class Meta {
 	uint32_t hash;
 
 	std::optional<std::vector<m_force_func>> additional_forces;
-	m_coll_context collisionContext;
+	m_coll_context collision_context;
 	std::optional<std::vector<Ode>> odes;
 
 	double LU;
@@ -125,7 +125,7 @@ class Particle {
 	void setParticleProperties(const T& properties) {meta_props.particle_properties = properties;}
 
 	protected:
-	void setCollisionContext(m_coll_context collision_context) {meta_props.collisionContext = collision_context;}
+	void setCollisionContext(m_coll_context collision_context) {meta_props.collision_context = collision_context;}
 	void setChar(double LU, double TU, double MU) {meta_props.LU = LU; meta_props.TU = TU; meta_props.MU = MU;}
 	void setHash(uint32_t);
 
@@ -136,7 +136,6 @@ class Particle {
 	double getRadius() const {return r;}
 	const std::optional<std::reference_wrapper<std::vector<Ode>>> getOdes() {return meta_props.getOdes();}
 	uint32_t getHash() const {return meta_props.hash;}
-
 
 	protected:
 	void dim();

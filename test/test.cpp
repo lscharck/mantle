@@ -3,7 +3,7 @@
 #include <functional>
 #include <cassert>
 #include <cmath>
-#include "mantle.h"
+#include "mantle.hpp"
 
 struct properties1 {
     double param1;
