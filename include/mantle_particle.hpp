@@ -50,16 +50,22 @@ class ParticleLite;
 typedef m_accel (*m_force_func)(const ParticleLite&);
 typedef int (*m_coll_func)(ParticleLite&, ParticleLite&);
 typedef m_coll_func (*m_coll_context)(const ParticleLite&, const ParticleLite&);
-typedef void (*m_ode_func)(double* const, const ParticleLite&);
+typedef std::vector<double> (*m_ode_func)(std::vector<double>, const ParticleLite&);
 
 class Ode {
 
 	public:
 	m_ode_func ode_func;
-	std::vector<double> y;
+	std::vector<double> init_y;
+    uint32_t size;
+	double* current_y;
+    std::vector<double> save_y;
 	std::any particle_properties;
 	uint32_t id;
 	uint32_t hash;
+
+    public:
+    void setOdey(double* y) {current_y = y;};
 
 };
 
@@ -91,12 +97,17 @@ class Meta {
 	double TU;
 	double MU;
 
+    public:
+   	void setOde(m_ode_func func, std::vector<double> y, uint32_t id);
+    void saveOde();
+
 	public:
 	Meta();
 	void incCollision() {if (count_collisions) {collisions++;}}
 	int getCollisionLog() const {return collisions;}
 	bool collectHistory() const {return collect_history;}
 	const std::optional<std::reference_wrapper<std::vector<Ode>>> getOdes() {if (odes.has_value()) {return std::ref(odes.value());} else {return std::nullopt;}}
+    const std::optional<std::vector<double>> getOdey(uint32_t id) const;
 
 };
 
@@ -119,7 +130,7 @@ class Particle {
 	void setCollisionTracker(void) {meta_props.count_collisions = true;}
 	void setHistoryTracker(void) {meta_props.collect_history = true;}
 	void setAdditionalForces(std::vector<m_force_func> function_array) {meta_props.additional_forces = function_array;}
-	void setOde(m_ode_func func, std::vector<double> y);
+	void setOde(m_ode_func func, std::vector<double> y, uint32_t id) {meta_props.setOde(func, y, id);}
 
 	template <typename T>
 	void setParticleProperties(const T& properties) {meta_props.particle_properties = properties;}

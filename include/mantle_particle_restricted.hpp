@@ -16,6 +16,7 @@ class ParticleRestricted {
 	bool stateUpdated;
 	Meta& meta_props;
 	struct reb_particle* reb_p;
+    bool ode_saved;
 
 	public:
 	ParticleRestricted(struct reb_particle& p, double);
@@ -24,6 +25,7 @@ class ParticleRestricted {
 	const std::any& getParticleProperties() const;
 	const m_coll_context& getCollisionContext() const;
 	const std::optional<std::vector<m_force_func>>& getAdditionalForces() const;
+    const std::optional<std::vector<double>> getOdey(uint32_t id) {if (!ode_saved) {meta_props.saveOde(); ode_saved = true;}; return meta_props.getOdey(id);}
 
 	public:
 	void incCollision() {meta_props.incCollision();}
@@ -51,6 +53,7 @@ class ParticleLite {
 	bool isType() const {return typeid(T) == p.getParticleProperties().type();}
 	template <typename T>
 	std::optional<T> getParticleProperties() const {if (isType<T>()) {return std::any_cast<T>(p.getParticleProperties());} else {return std::nullopt;}}
+    std::optional<std::vector<double>> getOdey(uint32_t id) {return p.getOdey(id);}
 
 };
 
@@ -66,13 +69,16 @@ class ParticleHistory {
 	ParticleHistory();
 	ParticleHistory(struct reb_particle& p, double);
 
+    public:
+	bool collectHistory() const {return meta_props.collectHistory();}
+
 	public:
 	template <typename T>
 	bool isType() const {return typeid(T) == meta_props.particle_properties.type();}
 	template <typename T>
 	std::optional<T> getParticleProperties() const {if (isType<T>()) {return std::any_cast<T>(meta_props.particle_properties);} else {return std::nullopt;}}
 	int getCollisionLog() const {return meta_props.getCollisionLog();}
-	bool collectHistory() const {return meta_props.collectHistory();}
+    std::optional<std::vector<double>> getOdey(uint32_t id) {return meta_props.getOdey(id);};
 
 	public:
 	void dim();

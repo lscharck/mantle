@@ -12,6 +12,50 @@ Meta::Meta() {
 
 }
 
+void Meta::setOde(m_ode_func func, std::vector<double> y, uint32_t id) {
+
+    Ode ode;
+    ode.ode_func = func;
+    ode.init_y = y;
+    ode.size = y.size();
+    ode.particle_properties = particle_properties;
+    ode.id = id;
+
+    if (!odes.has_value()) {
+        odes = std::vector<Ode>{};
+    }
+
+    odes.value().push_back(ode);
+
+}
+
+void Meta::saveOde() {
+
+    if (!odes.has_value()) {return;}
+
+    for (auto ode: odes.value()) {
+        int size = ode.size;
+        ode.save_y.insert(ode.save_y.end(), ode.current_y, ode.current_y+size);
+    }
+
+}
+
+const std::optional<std::vector<double>> Meta::getOdey(uint32_t id) const {
+
+    if (!odes.has_value()) { return std::nullopt;}
+
+    for (auto ode: odes.value()) {
+        if (ode.id == id) {
+            return ode.save_y;
+        }
+
+    }
+
+    return std::nullopt;
+
+}
+
+
 Particle::Particle(double mass, double radius) : meta_props() {
 
     m = mass;
@@ -44,25 +88,6 @@ void Particle::setStateKep(double a, double e, double inc, double Omega, double 
     s.f = f;
 
     state = s;
-
-}
-
-void Particle::setOde(m_ode_func func, std::vector<double> y) {
-
-    Ode ode;
-    ode.ode_func = func;
-    ode.y = y;
-    ode.particle_properties = meta_props.particle_properties;
-    ode.id = 0;
-
-    if (!meta_props.odes.has_value()) {
-        meta_props.odes = std::vector<Ode>{};
-    }
-    else {
-        ode.id = meta_props.odes.value().back().id++;
-    }
-
-    meta_props.odes.value().push_back(ode);
 
 }
 

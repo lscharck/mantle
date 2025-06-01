@@ -72,7 +72,7 @@ m_accel f22(const ParticleLite& p2) {
     return m_accel(-0.01, -0.01, -0.01);
 }
 
-void g11(double* const yDot,const ParticleLite& p1) {
+std::vector<double> g11(std::vector<double> y, const ParticleLite& p1) {
     auto props_1 = p1.getParticleProperties<properties1>();
     double param1 = props_1->param1;
     double param2 = props_1->param2;
@@ -82,11 +82,10 @@ void g11(double* const yDot,const ParticleLite& p1) {
     assert((param2 == 90.3));
     assert((mass == 1.0));
     assert((radius == 0.4));
-    yDot[0] = 0.1;
-    yDot[1] = 0.2;
+    return std::vector<double> {0.1, 0.2};
 }
 
-void g12(double* const yDot,const ParticleLite& p1) {
+std::vector<double> g12(std::vector<double> y, const ParticleLite& p1) {
     auto props_1 = p1.getParticleProperties<properties1>();
     double param1 = props_1->param1;
     double param2 = props_1->param2;
@@ -96,12 +95,10 @@ void g12(double* const yDot,const ParticleLite& p1) {
     assert((param2 == 90.3));
     assert((mass == 1.0));
     assert((radius == 0.4));
-    yDot[0] = 0.1;
-    yDot[1] = 0.2;
-    yDot[3] = 0.3;
+    return std::vector<double> {0.1, 0.2, 0.3};
 }
 
-void g21(double* const yDot,const ParticleLite& p2) {
+std::vector<double> g21(std::vector<double> y, const ParticleLite& p2) {
     auto props_2 = p2.getParticleProperties<properties2>();
     double param1 = props_2->param1;
     int param2 = props_2->param2;
@@ -111,11 +108,10 @@ void g21(double* const yDot,const ParticleLite& p2) {
     assert((param2 = 1));
     assert((mass == 2.0));
     assert((radius == 0.8));
-    yDot[0] = 0.1;
-    yDot[1] = 0.2;
+    return std::vector<double> {0.1, 0.2};
 }
 
-void g22(double* const yDot,const ParticleLite& p2) {
+std::vector<double> g22(std::vector<double> y, const ParticleLite& p2) {
     auto props_2 = p2.getParticleProperties<properties2>();
     double param1 = props_2->param1;
     int param2 = props_2->param2;
@@ -125,9 +121,7 @@ void g22(double* const yDot,const ParticleLite& p2) {
     assert((param2 = 1));
     assert((mass == 2.0));
     assert((radius == 0.8));
-    yDot[0] = 0.1;
-    yDot[1] = 0.2;
-    yDot[3] = 0.3;
+    return std::vector<double> {0.1, 0.2, 0.3};
 }
 
 std::vector<Particle> buildParticles() {
@@ -140,8 +134,8 @@ std::vector<Particle> buildParticles() {
     properties1 props1 = {.param1 = 17.8, .param2 = 90.3, .mass=mass1, .radius=radius1};
     p1.setParticleProperties(props1);
     p1.setAdditionalForces({f11, f12});
-    p1.setOde(g11, {0.0, 0.0});
-    p1.setOde(g12, {0.0, 0.0, 0.0});
+    p1.setOde(g11, {0.0, 0.0}, 0);
+    p1.setOde(g12, {0.0, 0.0, 0.0}, 1);
 
     double mass2 = 2.0;
     double radius2 = 0.8;
@@ -152,8 +146,8 @@ std::vector<Particle> buildParticles() {
     properties2 props2 = {.param1 = 45.2, .param2 = 1, .mass=mass2, .radius=radius2};
     p2.setParticleProperties(props2);
     p2.setAdditionalForces({f21, f22});
-    p2.setOde(g21, {0.0, 0.0});
-    p2.setOde(g22, {0.0, 0.0, 0.0});
+    p2.setOde(g21, {0.0, 0.0}, 0);
+    p2.setOde(g22, {0.0, 0.0, 0.0}, 1);
 
     std::vector<Particle> ps = {p1, p2};
 

@@ -240,9 +240,11 @@ void Mantle::addOde() {
 
     std::for_each(particles.begin(), particles.end(), [r=this->r] (Particle& p) {
             liftOptional(p.getOdes(), [r] (auto odes) {
-                std::for_each(odes.get().begin(), odes.get().end(), [r] (const Ode& ode) {
-                        struct reb_ode* ho = reb_ode_create(r, ode.y.size());
+                std::for_each(odes.get().begin(), odes.get().end(), [r] (Ode& ode) {
+                        struct reb_ode* ho = reb_ode_create(r, ode.size);
                         ho->derivatives = m_ode;
+                        for (uint32_t i=0; i<ode.size;i++) {ho->y[i] = ode.init_y[i];}
+                        ode.setOdey(ho->y);
                         ho->ref = const_cast<void*>(static_cast<const void*>(&ode));
                         });
                 });
@@ -342,12 +344,16 @@ int m_collisionResolve(struct reb_simulation* r, struct reb_collision c) {
 
 void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y, const double t) {
 
-    auto pair = *static_cast<Ode*>(ode->ref);
+    auto _ode = *static_cast<Ode*>(ode->ref);
 
-    uint32_t hash = pair.hash;
-    auto f = pair.ode_func;
+    uint32_t hash = _ode.hash;
+    auto f = _ode.ode_func;
 
     reb_particle* s = reb_simulation_particle_by_hash(ode->r, hash);
+
+    std::vector<double> _y;
+    std::vector<double> y_dot;
+    int size = _ode.size;
 
     if (s == NULL) {return;};
 
@@ -356,7 +362,11 @@ void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y,
 
     ParticleLite pl(p);
 
-    f(yDot, pl);
+    _y.insert(_y.end(), y, y+size);
+    y_dot = f(_y, pl);
+    for (int i = 0; i < size; i++) {
+        yDot[i] = y_dot[i];
+    }
 
 }
 

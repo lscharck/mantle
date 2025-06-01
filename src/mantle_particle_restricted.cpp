@@ -9,6 +9,8 @@ ParticleRestricted::ParticleRestricted(struct reb_particle& p, double t_) : meta
 
     reb_p = &p;
 
+    ode_saved = false;
+
 }
 
 const std::any& ParticleRestricted::getParticleProperties() const {return meta_props.particle_properties;}
@@ -70,6 +72,7 @@ ParticleHistory::ParticleHistory(struct reb_particle &p, double t_) {
     state = {.x = p.x, .y = p.y, .z = p.z, .vx = p.vx, .vy = p.vy, .vz = p.vz, .t = t_};
 
     meta_props = *static_cast<Meta*>(p.ap);
+    meta_props.saveOde();
 
 }
 
