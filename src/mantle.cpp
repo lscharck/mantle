@@ -8,21 +8,21 @@ void liftOptional(std::optional<T> val, F f) {
     if (val.has_value()) {f(val.value());}
 }
 
-Mantle::Mantle(m_sim_params user_params, userParticles userFn) {
+Mantle::Mantle(const std::vector<std::unique_ptr<struct MConfig>>& user_configs, std::vector<Particle> userParticles) {
 
-    reb_sim_params = user_params;
-    userParticlesFn = userFn;
-    has_additional_forces = false;
-    has_ode = false;
+    r = reb_simulation_create();
 
-}
+    for (const auto& config: user_configs) {
+        config->updateSim(this, r);
+    }
 
-Mantle::Mantle(m_sim_params user_params, std::vector<Particle> userParticles) {
-
-    reb_sim_params = user_params;
-    has_additional_forces = false;
-    has_ode = false;
     particles = userParticles;
+
+    addHash();
+    if (collisionContext.has_value()) {addCollision(collisionContext.value());};
+    if (has_additional_forces) {addAdditionalForce();}
+    if (has_ode) {addOde();}
+    addParticles();
 
 }
 
@@ -32,120 +32,9 @@ Mantle::~Mantle() {
 
 }
 
-void Mantle::setAdditionalForce(void) {
-
-    has_additional_forces = true;
-
-}
-
-void Mantle::setCollisionContext(m_coll_context userCollisionContext) {
-
-    collisionContext = userCollisionContext;
-
-}
-
-void Mantle::setOde(void) {
-
-    has_ode = true;
-
-}
-
 long Mantle::getCollisionLog() const {
 
     return r->collisions_log_n;
-
-}
-
-void Mantle::initMantle(void) {
-
-    r = reb_simulation_create();
-    updateParams();
-    if (userParticlesFn.has_value()) {auto f = userParticlesFn.value(); particles = f();}
-    addHash();
-    if (collisionContext.has_value()) {addCollision(collisionContext.value());};
-    if (has_additional_forces) {addAdditionalForce();}
-    if (has_ode) {addOde();}
-    addParticles();
-
-}
-
-void Mantle::updateParams(void) {
-
-    // override defaults with user parameters
-    r->G = reb_sim_params.G;
-
-    switch (reb_sim_params.config.gravity) {
-        case gravity_solvers::TREE:
-            r->gravity = reb_simulation::REB_GRAVITY_TREE;
-            r->opening_angle2 = reb_sim_params.config.opening_angle2;
-            r->softening = reb_sim_params.config.softening;
-            break;
-        case gravity_solvers::COMPENSATED:
-            r->gravity = reb_simulation::REB_GRAVITY_COMPENSATED;
-            break;
-        case gravity_solvers::JACOBI:
-            r->gravity = reb_simulation::REB_GRAVITY_JACOBI;
-            break;
-        case gravity_solvers::NONE:
-            r->gravity = reb_simulation::REB_GRAVITY_NONE;
-            break;
-        default:
-            break;
-    }
-
-    switch (reb_sim_params.config.collision) {
-        case collision_solvers::DIRECT:
-            r->collision = reb_simulation::REB_COLLISION_DIRECT;
-            r->collision_resolve = reb_collision_resolve_hardsphere;
-            break;
-        case collision_solvers::LINE:
-            r->collision = reb_simulation::REB_COLLISION_LINE;
-            r->collision_resolve = reb_collision_resolve_hardsphere;
-            break;
-        case collision_solvers::LINETREE:
-            r->collision = reb_simulation::REB_COLLISION_LINETREE;
-            r->collision_resolve = reb_collision_resolve_hardsphere;
-            break;
-        case collision_solvers::TREE:
-            r->collision = reb_simulation::REB_COLLISION_TREE;
-            r->collision_resolve = reb_collision_resolve_hardsphere;
-            break;
-        default:
-            break;
-    }
-
-    switch (reb_sim_params.config.integrator) {
-        case integrators::WHFAST:
-            r->integrator = reb_simulation::REB_INTEGRATOR_WHFAST;
-            break;
-        case integrators::SEI:
-            r->integrator = reb_simulation::REB_INTEGRATOR_SEI;
-            break;
-        case integrators::LEAPFROG:
-            r->integrator = reb_simulation::REB_INTEGRATOR_LEAPFROG;
-            break;
-        default:
-            break;
-    }
-
-    if ((reb_sim_params.config.gravity == gravity_solvers::TREE)
-            || (reb_sim_params.config.collision == collision_solvers::TREE)
-            || (reb_sim_params.config.collision == collision_solvers::LINETREE)) {
-        reb_simulation_configure_box(r, reb_sim_params.config.box_size,
-                reb_sim_params.config.x_boxes, reb_sim_params.config.y_boxes,
-                reb_sim_params.config.z_boxes);
-#ifdef OPENMP
-        omp_set_num_threads(reb_sim_params.config.threads);
-#endif
-    }
-
-    if (reb_sim_params.config.dt > 0) {
-        r->dt = reb_sim_params.config.dt;
-    }
-
-    if (reb_sim_params.config.active > 0) {
-        r->N_active = reb_sim_params.config.active;
-    }
 
 }
 
@@ -186,10 +75,6 @@ struct VisitState {
 };
 
 void Mantle::addParticles() {
-
-    double LU = reb_sim_params.LU;
-    double TU = reb_sim_params.TU;
-    double MU = reb_sim_params.MU;
 
     std::partial_sort(particles.begin(), particles.begin()+1, particles.end(), [](auto p1, auto p2) {
             return p1.getMass() > p2.getMass();
@@ -238,13 +123,15 @@ void Mantle::addCollision(m_coll_context a) {
 
 void Mantle::addOde() {
 
-    std::for_each(particles.begin(), particles.end(), [r=this->r] (Particle& p) {
-            liftOptional(p.getOdes(), [r] (auto odes) {
-                std::for_each(odes.get().begin(), odes.get().end(), [r] (Ode& ode) {
+    std::for_each(particles.begin(), particles.end(), [TU=TU, r=this->r] (Particle& p) {
+            liftOptional(p.getOdes(), [TU=TU, r] (auto odes) {
+                std::for_each(odes.get().begin(), odes.get().end(), [TU=TU, r] (Ode& ode) {
                         struct reb_ode* ho = reb_ode_create(r, ode.size);
                         ho->derivatives = m_ode;
+                        ode.TU = TU;
+                        ode.init_y = Ode::nonDim(ode.init_y, 1.0, TU);
                         for (uint32_t i=0; i<ode.size;i++) {ho->y[i] = ode.init_y[i];}
-                        ode.setOdey(ho->y);
+                        ode.setOdey(ho);
                         ho->ref = const_cast<void*>(static_cast<const void*>(&ode));
                         });
                 });
@@ -254,7 +141,7 @@ void Mantle::addOde() {
 
 m_history Mantle::evalSim(double tf, int nt) {
 
-    double dt = tf / (nt * reb_sim_params.TU);
+    double dt = tf / (nt * TU);
     double t = 0.0;
 
     std::vector<std::vector<ParticleHistory>> state_history;
@@ -362,8 +249,9 @@ void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y,
 
     ParticleLite pl(p);
 
+    double TU = _ode.TU;
     _y.insert(_y.end(), y, y+size);
-    y_dot = f(_y, pl);
+    y_dot = Ode::nonDim(f(Ode::dim(_y, 1.0, TU), pl), TU, TU*TU);
     for (int i = 0; i < size; i++) {
         yDot[i] = y_dot[i];
     }

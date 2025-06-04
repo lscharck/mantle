@@ -52,20 +52,26 @@ typedef int (*m_coll_func)(ParticleLite&, ParticleLite&);
 typedef m_coll_func (*m_coll_context)(const ParticleLite&, const ParticleLite&);
 typedef std::vector<double> (*m_ode_func)(std::vector<double>, const ParticleLite&);
 
+struct reb_ode;
 class Ode {
 
 	public:
 	m_ode_func ode_func;
 	std::vector<double> init_y;
     uint32_t size;
-	double* current_y;
+	struct reb_ode* ho;
     std::vector<double> save_y;
 	std::any particle_properties;
 	uint32_t id;
 	uint32_t hash;
+    double TU;
 
     public:
-    void setOdey(double* y) {current_y = y;};
+    void setOdey(struct reb_ode* _ho) {ho = _ho;};
+
+    public:
+    static std::vector<double> dim(std::vector<double>, double, double);
+    static std::vector<double> nonDim(std::vector<double>, double, double);
 
 };
 
@@ -97,17 +103,29 @@ class Meta {
 	double TU;
 	double MU;
 
-    public:
-   	void setOde(m_ode_func func, std::vector<double> y, uint32_t id);
-    void saveOde();
-
 	public:
 	Meta();
+
+    public:
+   	void setOde(m_ode_func func, std::vector<double> y, uint32_t id);
+	void setCollisionTracker(void) {count_collisions = true;}
+	void setHistoryTracker(void) {collect_history = true;}
+	void setAdditionalForces(std::vector<m_force_func> function_array) {additional_forces = function_array;}
+	void setCollisionContext(m_coll_context _collision_context) {collision_context = _collision_context;}
+	void setChar(double _LU, double _TU, double _MU) {LU = _LU; TU = _TU; MU = _MU;}
+	void setHash(uint32_t);
+    void saveOde();
+
+   	template <typename T>
+	void setParticleProperties(const T& properties) {particle_properties = properties;}
+
+	public:
 	void incCollision() {if (count_collisions) {collisions++;}}
 	int getCollisionLog() const {return collisions;}
 	bool collectHistory() const {return collect_history;}
 	const std::optional<std::reference_wrapper<std::vector<Ode>>> getOdes() {if (odes.has_value()) {return std::ref(odes.value());} else {return std::nullopt;}}
     const std::optional<std::vector<double>> getOdey(uint32_t id) const;
+	uint32_t getHash() const {return hash;}
 
 };
 
@@ -127,18 +145,18 @@ class Particle {
 	Particle(double mass, double radius);
 	void setStateCart(double x, double y, double z, double vx, double vy, double vz);
 	void setStateKep(double a, double e, double inc, double Omega, double omega, double f);
-	void setCollisionTracker(void) {meta_props.count_collisions = true;}
-	void setHistoryTracker(void) {meta_props.collect_history = true;}
-	void setAdditionalForces(std::vector<m_force_func> function_array) {meta_props.additional_forces = function_array;}
+	void setCollisionTracker(void) {meta_props.setCollisionTracker();}
+	void setHistoryTracker(void) {meta_props.setHistoryTracker();}
+	void setAdditionalForces(std::vector<m_force_func> function_array) {meta_props.setAdditionalForces(function_array);}
 	void setOde(m_ode_func func, std::vector<double> y, uint32_t id) {meta_props.setOde(func, y, id);}
 
 	template <typename T>
-	void setParticleProperties(const T& properties) {meta_props.particle_properties = properties;}
+	void setParticleProperties(const T& properties) {meta_props.setParticleProperties(properties);}
 
 	protected:
-	void setCollisionContext(m_coll_context collision_context) {meta_props.collision_context = collision_context;}
-	void setChar(double LU, double TU, double MU) {meta_props.LU = LU; meta_props.TU = TU; meta_props.MU = MU;}
-	void setHash(uint32_t);
+	void setCollisionContext(m_coll_context collision_context) {meta_props.setCollisionContext(collision_context);}
+	void setChar(double LU, double TU, double MU) {meta_props.setChar(LU, TU, MU);}
+	void setHash(uint32_t id) {meta_props.setHash(id);}
 
 	protected:
 	const std::variant<m_cart_state_vector, m_kep_state_vector>& getState() const {return state;}
@@ -146,7 +164,7 @@ class Particle {
 	double getMass() const {return m;}
 	double getRadius() const {return r;}
 	const std::optional<std::reference_wrapper<std::vector<Ode>>> getOdes() {return meta_props.getOdes();}
-	uint32_t getHash() const {return meta_props.hash;}
+	uint32_t getHash() const {return meta_props.getHash();}
 
 	protected:
 	void dim();

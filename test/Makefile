@@ -14,18 +14,21 @@ endif
 
 all: clean test run_test
 
-test: test.o
-	$(CXX) -L$(REBOUND) $(OPT) -Wl,-rpath,../rebound/src/ -lrebound test.o -L$(LIBDIR) -lmantle -o test
+test: test.o smoke_test.o meta_test.o
+	$(CXX) -L$(REBOUND) $(OPT) -Wl,-rpath,../rebound/src/ -lrebound test.o smoke_test.o meta_test.o -L$(LIBDIR) -lmantle -o test
 
-test.o: test.cpp
+test.o smoke_test.o meta_test.o: test.cpp smoke_test.cpp meta_test.cpp
+	$(CXX) $(CXXFLAGS) -c meta_test.cpp -o meta_test.o
+	$(CXX) $(CXXFLAGS) -c smoke_test.cpp -o smoke_test.o
 	$(CXX) $(CXXFLAGS) -c test.cpp -o test.o
 
 run_test:
 	./test
 	diff data.txt real.txt
+	diff ode_data.txt ode_real.txt
 
 clean:
-	$(RM) -r test test.o data.txt
+	$(RM) -r test test.o smoke_test.o meta_test.o data.txt ode_data.txt
 
 .PHONY: all run_test clean
 
