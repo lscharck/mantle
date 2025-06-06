@@ -11,6 +11,7 @@ void liftOptional(std::optional<T> val, F f) {
 Mantle::Mantle(const std::vector<std::unique_ptr<struct MConfig>>& user_configs, std::vector<Particle> userParticles) {
 
     r = reb_simulation_create();
+    r->extras = const_cast<void*>(static_cast<const void*>(this));
 
     for (const auto& config: user_configs) {
         config->updateSim(this, r);
@@ -22,6 +23,7 @@ Mantle::Mantle(const std::vector<std::unique_ptr<struct MConfig>>& user_configs,
     if (collisionContext.has_value()) {addCollision(collisionContext.value());};
     if (has_additional_forces) {addAdditionalForce();}
     if (has_ode) {addOde();}
+    if (removeParticleTest.has_value()) {r->heartbeat = m_heartbeat;}
     addParticles();
 
 }
@@ -110,7 +112,7 @@ void Mantle::addAdditionalForce() {
 #else
     r->additional_forces = m_additionalForces;
 #endif
-    r->force_is_velocity_dependent = 1;
+    if (force_is_velocity_dep) {r->force_is_velocity_dependent = 1;}
 
 }
 
@@ -154,6 +156,7 @@ m_history Mantle::evalSim(double tf, int nt) {
         std::vector<ParticleHistory> ps(count);
         std::copy_if(tmp_ps.begin(), tmp_ps.end(), ps.begin(), [](auto p) {return p.collectHistory();});
         state_history.push_back(ps);
+        if (r->status == REB_STATUS::REB_STATUS_USER) {break;}
         t += dt;
     }
 
@@ -231,16 +234,16 @@ int m_collisionResolve(struct reb_simulation* r, struct reb_collision c) {
 
 void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y, const double t) {
 
-    auto _ode = *static_cast<Ode*>(ode->ref);
+    auto _ode = static_cast<Ode*>(ode->ref);
 
-    uint32_t hash = _ode.hash;
-    auto f = _ode.ode_func;
+    uint32_t hash = _ode->hash;
+    auto f = _ode->ode_func;
 
     reb_particle* s = reb_simulation_particle_by_hash(ode->r, hash);
 
     std::vector<double> _y;
     std::vector<double> y_dot;
-    int size = _ode.size;
+    int size = _ode->size;
 
     if (s == NULL) {return;};
 
@@ -249,12 +252,32 @@ void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y,
 
     ParticleLite pl(p);
 
-    double TU = _ode.TU;
+    double TU = _ode->TU;
     _y.insert(_y.end(), y, y+size);
     y_dot = Ode::nonDim(f(Ode::dim(_y, 1.0, TU), pl), TU, TU*TU);
     for (int i = 0; i < size; i++) {
         yDot[i] = y_dot[i];
     }
+
+}
+
+void m_heartbeat(struct reb_simulation* r) {
+
+    auto m = static_cast<Mantle*>(r->extras);
+    auto tester = m->removeParticleTest.value();
+    auto terminate = m->simTerminate.value();
+
+    std::for_each(r->particles, r->particles + r->N, [tester=tester, t=r->t, r=r] (struct reb_particle& rp) {
+            ParticleRestricted p(rp, t);
+            p.dim();
+            bool yes_remove = false;
+            uint32_t hash;
+            if (p.isRemovable()) {yes_remove = tester(ParticleLite(p)); hash = p.getHash();}
+            if (yes_remove) {reb_simulation_remove_particle_by_hash(r, hash, 0);}
+            });
+
+    bool yes_term = terminate(r->N);
+    if (yes_term) {reb_simulation_stop(r);}
 
 }
 

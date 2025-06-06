@@ -26,6 +26,8 @@ class ParticleRestricted {
 	const m_coll_context& getCollisionContext() const;
 	const std::optional<std::vector<m_force_func>>& getAdditionalForces() const;
     std::optional<std::vector<double>> getOdey(uint32_t id) const {meta_props.saveOde(); return meta_props.getOdey(id);}
+	uint32_t getHash() const {return meta_props.getHash();}
+    bool isRemovable() const {return meta_props.isRemovable();}
 
 	public:
 	void incCollision() {meta_props.incCollision();}

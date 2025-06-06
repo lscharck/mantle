@@ -16,6 +16,9 @@ enum class WHFastCoord {REB_WHFAST_COORDINATES_JACOBI, REB_WHFAST_COORDINATES_DE
 struct reb_simulation;
 struct MConfig { virtual std::string updateSim(class Mantle* m, reb_simulation* r) = 0; virtual ~MConfig() = default;};
 
+typedef bool (*m_remove_particle)(const ParticleLite&);
+typedef bool (*m_sim_terminate)(int);
+
 struct SimBox {
     std::optional<double> box_size;
     std::optional<int> x_boxes;
@@ -96,8 +99,11 @@ struct General : MConfig {
     std::optional<int> threads;
     std::optional<bool> has_ode;
     std::optional<bool> has_additional_forces;
+    std::optional<bool> force_is_velocity_dep;
+    std::optional<m_remove_particle> removeParticleTest;
+    std::optional<m_sim_terminate> simTerminate;
     std::string updateSim(class Mantle* m, reb_simulation* r) override;
-    General() {has_ode = false; has_additional_forces = false; MU = 1.0; LU = 1.0; TU = 1.0;}
+    General() {has_ode = false; has_additional_forces = false; force_is_velocity_dep = true; MU = 1.0; LU = 1.0; TU = 1.0;}
 };
 
 #endif // CONFIG_H

@@ -50,7 +50,13 @@ std::string LineTreeCollision::updateSim(class Mantle* m, reb_simulation* r) {
 }
 std::string NoCollision::updateSim(class Mantle* m, reb_simulation* r) {r->collision = reb_simulation::REB_COLLISION_NONE; return "";}
 
-std::string IAS15Integrator::updateSim(class Mantle* m, reb_simulation* r) {r->integrator = reb_simulation::REB_INTEGRATOR_IAS15; return "";}
+std::string IAS15Integrator::updateSim(class Mantle* m, reb_simulation* r) {
+    r->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
+    if (epsilon.has_value()) {r->ri_ias15.epsilon = epsilon.value();}
+    if (min_dt.has_value()) {r->ri_ias15.min_dt = min_dt.value();}
+    if (adaptive_mode.has_value()) {r->ri_ias15.adaptive_mode = adaptive_mode.value();}
+    return "";
+}
 std::string BSIntegrator::updateSim(class Mantle* m, reb_simulation* r) {r->integrator = reb_simulation::REB_INTEGRATOR_BS; return "";}
 std::string WHFastIntegrator::updateSim(class Mantle* m, reb_simulation* r) {r->integrator = reb_simulation::REB_INTEGRATOR_WHFAST; return "";}
 std::string LeapFrogIntegrator::updateSim(class Mantle* m, reb_simulation* r) {r->integrator = reb_simulation::REB_INTEGRATOR_LEAPFROG; return "";}
@@ -67,6 +73,9 @@ std::string General::updateSim(class Mantle* m, reb_simulation* r) {
     if(softening.has_value()) {r->softening = softening.value();}
     if(has_ode.has_value()) {m->has_ode = has_ode.value();}
     if(has_additional_forces.has_value()) {m->has_additional_forces = has_additional_forces.value();}
+    if(force_is_velocity_dep.has_value()) {m->force_is_velocity_dep = force_is_velocity_dep.value();}
+    if (removeParticleTest.has_value()) {m->removeParticleTest = removeParticleTest.value();}
+    if (simTerminate.has_value()) {m->simTerminate = simTerminate.value();}
 #ifdef OPENMP
         if(threads.has_value()) {omp_set_num_threads(threads.value());}
 #endif

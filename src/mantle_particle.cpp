@@ -5,13 +5,14 @@ extern "C" {
 
 Meta::Meta() {
 
-    collisions = 0;
+    collisions       = 0;
     count_collisions = false;
-    collect_history = false;
-    hash = 0;
-    LU = 1.0;
-    TU = 1.0;
-    MU = 1.0;
+    collect_history  = false;
+    removable        = true;
+    hash             = 0;
+    LU               = 1.0;
+    TU               = 1.0;
+    MU               = 1.0;
 
 }
 
@@ -19,11 +20,11 @@ void Meta::setOde(m_ode_func func, std::vector<double> y, uint32_t id) {
 
     Ode ode;
     ode.ode_func = func;
-    ode.init_y = y;
-    ode.size = y.size();
-    ode.save_y = ode.init_y;
+    ode.init_y   = y;
+    ode.size     = y.size();
+    ode.save_y   = ode.init_y;
+    ode.id       = id;
     ode.particle_properties = particle_properties;
-    ode.id = id;
 
     if (!odes.has_value()) {
         odes = std::vector<Ode>{};

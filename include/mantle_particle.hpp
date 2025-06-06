@@ -92,6 +92,7 @@ class Meta {
 	int collisions;
 	bool count_collisions;
 	bool collect_history;
+    bool removable;
 	std::any particle_properties;
 	uint32_t hash;
 
@@ -114,6 +115,7 @@ class Meta {
 	void setCollisionContext(m_coll_context _collision_context) {collision_context = _collision_context;}
 	void setChar(double _LU, double _TU, double _MU) {LU = _LU; TU = _TU; MU = _MU;}
 	void setHash(uint32_t);
+    void setIsRemovable(bool s) {removable = s;}
     void saveOde();
 
    	template <typename T>
@@ -126,6 +128,7 @@ class Meta {
 	const std::optional<std::reference_wrapper<std::vector<Ode>>> getOdes() {if (odes.has_value()) {return std::ref(odes.value());} else {return std::nullopt;}}
     const std::optional<std::vector<double>> getOdey(uint32_t id) const;
 	uint32_t getHash() const {return hash;}
+    bool isRemovable() const {return removable;}
 
 };
 
@@ -149,6 +152,7 @@ class Particle {
 	void setHistoryTracker(void) {meta_props.setHistoryTracker();}
 	void setAdditionalForces(std::vector<m_force_func> function_array) {meta_props.setAdditionalForces(function_array);}
 	void setOde(m_ode_func func, std::vector<double> y, uint32_t id) {meta_props.setOde(func, y, id);}
+    void setIsRemovable(bool s) {meta_props.setIsRemovable(s);}
 
 	template <typename T>
 	void setParticleProperties(const T& properties) {meta_props.setParticleProperties(properties);}
