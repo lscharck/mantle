@@ -7,6 +7,7 @@
 #include <functional>
 #include <numeric>
 #include <any>
+#include <memory>
 #ifdef OPENMP
 #include <omp.h>
 #endif

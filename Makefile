@@ -1,5 +1,5 @@
 CXX=c++
-CXXFLAGS=-g3 -Wall -std=c++23 -I$(INC) -I$(REBOUNDINC)
+CXXFLAGS=-g3 -Wall -Wno-unknown-pragmas -std=c++23 -I$(INC) -I$(REBOUNDINC)
 SRC=src
 OBJ=obj
 INC=include
@@ -21,7 +21,7 @@ endif
 
 all: rebound $(LIB)
 
-release: CXXFLAGS=-O2 -DNDEBUG -Werror -std=c++23 -pedantic -Wall -I$(INC) -I$(REBOUNDINC)
+release: CXXFLAGS=-O2 -DNDEBUG -Werror -std=c++23 -pedantic -Wall -Wno-unknown-pragmas -I$(INC) -I$(REBOUNDINC)
 release: clean
 release: rebound $(LIB)
 
