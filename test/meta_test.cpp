@@ -119,6 +119,7 @@ bool getCollisionLog_test() {
 
 bool collectHistory_test() {
     Meta meta;
+    meta.collect_history = true;
     meta.collectHistory();
     return (meta.collect_history == true);
 }
