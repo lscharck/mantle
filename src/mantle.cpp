@@ -122,7 +122,7 @@ void Mantle::addAdditionalForce() {
 void Mantle::addHeartbeat() {
 
 #ifdef OPENMP
-    r->heartbeat = m_heatbeatPar;
+    r->heartbeat = m_heartbeatPar;
 #else
     r->heartbeat = m_heartbeat;
 #endif
