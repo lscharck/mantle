@@ -23,13 +23,16 @@ Mantle::Mantle(const std::vector<std::unique_ptr<struct MConfig>>& user_configs,
     if (collisionContext.has_value()) {addCollision(collisionContext.value());};
     if (has_additional_forces) {addAdditionalForce();}
     if (has_ode) {addOde();}
-    if (removeParticleTest.has_value()) {r->heartbeat = m_heartbeat;}
+    if (removeParticleTest.has_value()) {addHeartbeat();}
     addParticles();
 
 }
 
 Mantle::~Mantle() {
 
+    std::for_each(particles.begin(), particles.end(), [] (Particle& p) {
+        liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {reb_ode_free(ode.ho);});});
+        });
     reb_simulation_free(r);
 
 }
@@ -116,6 +119,16 @@ void Mantle::addAdditionalForce() {
 
 }
 
+void Mantle::addHeartbeat() {
+
+#ifdef OPENMP
+    r->heartbeat = m_heatbeatPar;
+#else
+    r->heartbeat = m_heartbeat;
+#endif
+
+}
+
 void Mantle::addCollision(m_coll_context a) {
 
     r->collision_resolve = m_collisionResolve;
@@ -150,7 +163,7 @@ m_history Mantle::evalSim(double tf, int nt) {
     for (int i = 0; i <= nt; i++) {
         reb_simulation_integrate(r, t);
         std::vector<ParticleHistory> tmp_ps(r->N);
-        std::transform(r->particles, r->particles + r->N, tmp_ps.begin(), [t_=r->t] (auto p) {ParticleHistory result(p, t_); result.dim(); return result;});
+        std::transform(r->particles, r->particles + r->N, tmp_ps.begin(), [t_=r->t] (auto p) {ParticleHistory result(m_rebToCart(p, t_), *static_cast<Meta*>(p.ap)); result.dim(); return result;});
 
         int count = std::count_if(tmp_ps.begin(), tmp_ps.end(), [](auto p) {return p.collectHistory();});
         std::vector<ParticleHistory> ps(count);
@@ -168,15 +181,15 @@ void m_additionalForcesPar(struct reb_simulation* const r) {
 
 #pragma omp parallel for
     for (uint32_t i = 0; i < r->N; i++) {
-            ParticleRestricted p(r->particles[i], r->t);
+            ParticleRestricted p(m_rebToCart(r->particles+i, r->t), *static_cast<Meta*>(r->particles[i].ap));
             liftOptional(p.getAdditionalForces(), [&] (std::vector<m_force_func>& as) {
                 p.dim();
                 auto accel = std::accumulate(as.begin(), as.end(), m_accel(0), [&](auto a, auto f) {return a + f(ParticleLite(p));});
                 auto scale_accel = accel * (p.meta_props.TU * p.meta_props.TU / p.meta_props.LU);
 
-                p.reb_p->ax += scale_accel.ax;
-                p.reb_p->ay += scale_accel.ay;
-                p.reb_p->az += scale_accel.az;
+                r->particles[i].ax += scale_accel.ax;
+                r->particles[i].ay += scale_accel.ay;
+                r->particles[i].az += scale_accel.az;
 
             });
 
@@ -187,15 +200,15 @@ void m_additionalForcesPar(struct reb_simulation* const r) {
 void m_additionalForces(struct reb_simulation* const r) {
 
     std::for_each(r->particles, r->particles + r->N, [t=r->t] (struct reb_particle& rp) {
-            ParticleRestricted p(rp, t);
+            ParticleRestricted p(m_rebToCart(rp, t), *static_cast<Meta*>(rp.ap));
             liftOptional(p.getAdditionalForces(), [&] (std::vector<m_force_func>& as) {
                 p.dim();
                 auto accel = std::accumulate(as.begin(), as.end(), m_accel(0), [&](auto a, auto f) {return a + f(ParticleLite(p));});
                 auto scale_accel = accel * (p.meta_props.TU * p.meta_props.TU / p.meta_props.LU);
 
-                p.reb_p->ax += scale_accel.ax;
-                p.reb_p->ay += scale_accel.ay;
-                p.reb_p->az += scale_accel.az;
+                rp.ax += scale_accel.ax;
+                rp.ay += scale_accel.ay;
+                rp.az += scale_accel.az;
 
             });
 
@@ -205,8 +218,11 @@ void m_additionalForces(struct reb_simulation* const r) {
 
 int m_collisionResolve(struct reb_simulation* r, struct reb_collision c) {
 
-    ParticleRestricted p1(r->particles[c.p1], r->t);
-    ParticleRestricted p2(r->particles[c.p2], r->t);
+    struct reb_particle* reb_p1 = r->particles+c.p1;
+    struct reb_particle* reb_p2 = r->particles+c.p2;
+
+    ParticleRestricted p1(m_rebToCart(reb_p1, r->t), *static_cast<Meta*>(reb_p1->ap));
+    ParticleRestricted p2(m_rebToCart(reb_p2, r->t), *static_cast<Meta*>(reb_p2->ap));
 
     p1.dim();
     p2.dim();
@@ -221,8 +237,20 @@ int m_collisionResolve(struct reb_simulation* r, struct reb_collision c) {
     p1.nonDim();
     p2.nonDim();
 
-    p1.updateRebParticle();
-    p2.updateRebParticle();
+    auto s1 = p1.updateRebParticle();
+    reb_p1->x = s1.x;
+    reb_p1->y = s1.y;
+    reb_p1->z = s1.z;
+    reb_p1->vx = s1.vx;
+    reb_p1->vy = s1.vy;
+    reb_p1->vz = s1.vz;
+    auto s2 = p2.updateRebParticle();
+    reb_p2->x = s2.x;
+    reb_p2->y = s2.y;
+    reb_p2->z = s2.z;
+    reb_p2->vx = s2.vx;
+    reb_p2->vy = s2.vy;
+    reb_p2->vz = s2.vz;
 
     p1.incCollision();
     p2.incCollision();
@@ -247,7 +275,7 @@ void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y,
 
     if (s == NULL) {return;};
 
-    ParticleRestricted p(*s, t);
+    ParticleRestricted p(m_rebToCart(s, t), *static_cast<Meta*>(s->ap));
     p.dim();
 
     ParticleLite pl(p);
@@ -261,6 +289,45 @@ void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y,
 
 }
 
+void m_heartbeatPar(struct reb_simulation* r) {
+
+    auto m = static_cast<Mantle*>(r->extras);
+    auto tester = m->removeParticleTest.value();
+    auto terminate = m->simTerminate.value();
+
+    std::vector<ParticleRestricted> particles_to_remove;
+
+    #pragma omp parallel 
+    {
+        std::vector<ParticleRestricted> thread_local_ids;
+
+        #pragma omp for nowait
+        for (uint32_t i = 0; i < r->N; i++) {
+            ParticleRestricted p(m_rebToCart(r->particles+i, r->t), *static_cast<Meta*>(r->particles[i].ap));
+            p.dim();
+            if (p.isRemovable() && tester(ParticleLite(p))) {
+                thread_local_ids.push_back(p);
+            }
+
+        }
+
+        #pragma omp critical
+        {
+            particles_to_remove.insert(particles_to_remove.end(), thread_local_ids.begin(), thread_local_ids.end());
+        }
+
+    }
+
+    for (auto p : particles_to_remove) {
+        liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {reb_ode_free(ode.ho);});});
+        reb_simulation_remove_particle_by_hash(r, p.getHash(), 0);
+    }
+
+    bool yes_term = terminate(r->N);
+    if (yes_term) {reb_simulation_stop(r);}
+
+}
+
 void m_heartbeat(struct reb_simulation* r) {
 
     auto m = static_cast<Mantle*>(r->extras);
@@ -268,16 +335,28 @@ void m_heartbeat(struct reb_simulation* r) {
     auto terminate = m->simTerminate.value();
 
     std::for_each(r->particles, r->particles + r->N, [tester=tester, t=r->t, r=r] (struct reb_particle& rp) {
-            ParticleRestricted p(rp, t);
+            ParticleRestricted p(m_rebToCart(rp, t), *static_cast<Meta*>(rp.ap));
             p.dim();
-            bool yes_remove = false;
-            uint32_t hash;
-            if (p.isRemovable()) {yes_remove = tester(ParticleLite(p)); hash = p.getHash();}
-            if (yes_remove) {reb_simulation_remove_particle_by_hash(r, hash, 0);}
-            });
+            if (p.isRemovable() && tester(ParticleLite(p))) {
+                liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {reb_ode_free(ode.ho);});});
+                reb_simulation_remove_particle_by_hash(r, p.getHash(), 0);
+            }
+    });
 
     bool yes_term = terminate(r->N);
     if (yes_term) {reb_simulation_stop(r);}
+
+}
+
+struct m_cart_state_vector m_rebToCart(struct reb_particle& p, double t_) {
+
+    return {.x = p.x, .y = p.y, .z = p.z, .vx = p.vx, .vy = p.vy, .vz = p.vz, .t = t_};
+
+}
+
+struct m_cart_state_vector m_rebToCart(struct reb_particle* p, double t_) {
+
+    return {.x = p->x, .y = p->y, .z = p->z, .vx = p->vx, .vy = p->vy, .vz = p->vz, .t = t_};
 
 }
 

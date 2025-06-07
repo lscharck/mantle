@@ -13,25 +13,29 @@ class ParticleRestricted {
 
 	public:
 	m_cart_state_vector state;
-	bool stateUpdated;
 	Meta& meta_props;
-	struct reb_particle* reb_p;
-    bool ode_saved;
 
 	public:
-	ParticleRestricted(struct reb_particle& p, double);
+    ParticleRestricted(m_cart_state_vector _state, Meta& m) : meta_props(m) {state = _state;}
+	ParticleRestricted& operator=(const ParticleRestricted& other) {
+        if (this != &other) {
+            meta_props = other.meta_props;
+        }
+        return *this;
+    }
 
 	public:
-	const std::any& getParticleProperties() const;
-	const m_coll_context& getCollisionContext() const;
-	const std::optional<std::vector<m_force_func>>& getAdditionalForces() const;
-    std::optional<std::vector<double>> getOdey(uint32_t id) const {meta_props.saveOde(); return meta_props.getOdey(id);}
+    const std::any& getParticleProperties() const {return meta_props.particle_properties;}
+    const m_coll_context& getCollisionContext() const {return meta_props.collision_context;}
+    const std::optional<std::vector<m_force_func>>& getAdditionalForces() const {return meta_props.additional_forces;}
+    m_cart_state_vector updateRebParticle() {return state;}
+	const std::optional<std::reference_wrapper<std::vector<Ode>>> getOdes() {return meta_props.getOdes();}
+    std::optional<std::vector<double>> getOdey(uint32_t id) const {meta_props.syncOde(); return meta_props.getOdey(id);}
 	uint32_t getHash() const {return meta_props.getHash();}
     bool isRemovable() const {return meta_props.isRemovable();}
 
 	public:
 	void incCollision() {meta_props.incCollision();}
-	void updateRebParticle();
 	void dim();
 	void nonDim();
 
@@ -46,8 +50,7 @@ class ParticleLite {
 	m_cart_state_vector& state;
 
 	public:
-	ParticleLite(ParticleRestricted& p);
-	ParticleLite(struct reb_particle& p, double);
+    ParticleLite(ParticleRestricted &p_) : p(p_), state(p_.state) {}
 	void setState(double x, double y, double z, double vx, double vy, double vz);
 
 	public:
@@ -68,8 +71,8 @@ class ParticleHistory {
 	m_cart_state_vector state;
 
 	public:
-	ParticleHistory();
-	ParticleHistory(struct reb_particle& p, double);
+	ParticleHistory() {};
+	ParticleHistory(m_cart_state_vector, Meta);
 
     public:
 	bool collectHistory() const {return meta_props.collectHistory();}

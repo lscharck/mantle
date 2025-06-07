@@ -116,7 +116,7 @@ class Meta {
 	void setChar(double _LU, double _TU, double _MU) {LU = _LU; TU = _TU; MU = _MU;}
 	void setHash(uint32_t);
     void setIsRemovable(bool s) {removable = s;}
-    void saveOde();
+    void syncOde();
 
    	template <typename T>
 	void setParticleProperties(const T& properties) {particle_properties = properties;}

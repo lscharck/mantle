@@ -48,6 +48,7 @@ class Mantle {
 	private:
 	void addHash();
 	void addAdditionalForce();
+	void addHeartbeat();
 	void addParticles();
 	void addCollision(m_coll_context);
 	void addOde();
@@ -62,7 +63,14 @@ int m_collisionResolve(struct reb_simulation*, struct reb_collision);
 
 void m_ode(struct reb_ode* const, double* const, const double* const, const double);
 
+void m_heartbeatPar(struct reb_simulation* r);
+
 void m_heartbeat(struct reb_simulation* r);
+
+struct reb_particle;
+struct m_cart_state_vector m_rebToCart(struct reb_particle&, double);
+
+struct m_cart_state_vector m_rebToCart(struct reb_particle*, double);
 
 #endif // MANTLE_H
 

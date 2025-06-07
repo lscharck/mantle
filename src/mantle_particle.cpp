@@ -34,7 +34,7 @@ void Meta::setOde(m_ode_func func, std::vector<double> y, uint32_t id) {
 
 }
 
-void Meta::saveOde() {
+void Meta::syncOde() {
 
     if (!odes.has_value()) {return;}
 

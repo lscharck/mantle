@@ -145,40 +145,40 @@ bool meta_test() {
 
     std::string log = "";
     bool t1 = setOde_test();
-    if (!t1) {log+"setOde_test failed";}
+    if (!t1) {log+="setOde_test failed";}
 
     bool t2 = setCollisionTracker_test();
-    if (!t2) {log+" setCollisionTracker_test failed";}
+    if (!t2) {log+=" setCollisionTracker_test failed";}
 
     bool t3 = setHistoryTracker_test();
-    if (!t3) {log+" setHistoryTracker_test failed";}
+    if (!t3) {log+=" setHistoryTracker_test failed";}
 
     bool t4 = setAdditionalForces_test();
-    if (!t4) {log+" setAdditionalForces_test failed";}
+    if (!t4) {log+=" setAdditionalForces_test failed";}
 
     bool t5 = setCollisionContext_test();
-    if (!t5) {log+" setCollisionContext_test failed";}
+    if (!t5) {log+=" setCollisionContext_test failed";}
 
     bool t6 = setChar_test();
-    if (!t6) {log+" setChar_test failed";}
+    if (!t6) {log+=" setChar_test failed";}
 
     bool t7 = setHash_test();
-    if (!t7) {log+" setHash_test failed";}
+    if (!t7) {log+=" setHash_test failed";}
 
     bool t8 = setParticleProperties_test();
-    if (!t8) {log+" setParticleProperties_test failed";}
+    if (!t8) {log+=" setParticleProperties_test failed";}
 
     bool t9 = incCollision_test();
-    if (!t9) {log+" incCollision_test failed";}
+    if (!t9) {log+=" incCollision_test failed";}
 
     bool t10 = getCollisionLog_test();
-    if (!t10) {log+" getCollisionLog_test failed";}
+    if (!t10) {log+=" getCollisionLog_test failed";}
 
     bool t11 = collectHistory_test();
-    if (!t11) {log+" collectHistory_test failed";}
+    if (!t11) {log+=" collectHistory_test failed";}
 
     bool t12 = getHash_test();
-    if (!t12) {log+" getHash_test failed";}
+    if (!t12) {log+=" getHash_test failed";}
 
     std::cout << log << std::endl;
 
