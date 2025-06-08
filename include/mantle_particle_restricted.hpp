@@ -36,8 +36,8 @@ class ParticleRestricted {
 
 	public:
 	void incCollision() {meta_props.incCollision();}
-	void dim();
-	void nonDim();
+    inline void nonDim() {Scale<std::divides<double>> dim_((std::divides<double>()), meta_props.LU, meta_props.TU);dim_(state);}
+    inline void dim() {Scale<std::multiplies<double>> dim_((std::multiplies<double>()), meta_props.LU, meta_props.TU); dim_(state);}
 
 };
 
@@ -51,7 +51,7 @@ class ParticleLite {
 
 	public:
     ParticleLite(ParticleRestricted &p_) : p(p_), state(p_.state) {}
-	void setState(double x, double y, double z, double vx, double vy, double vz);
+    void setState(double x, double y, double z, double vx, double vy, double vz) {state.x = x; state.y = y; state.z = z; state.vx = vx; state.vy = vy; state.vz = vz;}
 
 	public:
 	template <typename T>
@@ -72,7 +72,7 @@ class ParticleHistory {
 
 	public:
 	ParticleHistory() {};
-	ParticleHistory(m_cart_state_vector, Meta);
+    ParticleHistory(m_cart_state_vector _state, Meta m) {state = _state; meta_props = m; meta_props.syncOde();}
 
     public:
 	bool collectHistory() const {return meta_props.collectHistory();}
@@ -86,8 +86,8 @@ class ParticleHistory {
     std::optional<std::vector<double>> const getOdey(uint32_t id) {return meta_props.getOdey(id);};
 
 	public:
-	void dim();
-	void nonDim();
+    inline void nonDim() {Scale<std::divides<double>> dim_((std::divides<double>()), meta_props.LU, meta_props.TU); dim_(state);}
+    inline void dim() {Scale<std::multiplies<double>> dim_((std::multiplies<double>()), meta_props.LU, meta_props.TU); dim_(state);}
 
 };
 
