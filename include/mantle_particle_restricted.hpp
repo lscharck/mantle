@@ -16,13 +16,24 @@ class ParticleRestricted {
 	Meta& meta_props;
 
 	public:
-    ParticleRestricted(m_cart_state_vector _state, Meta& m) : meta_props(m) {state = _state;}
+    ParticleRestricted(m_cart_state_vector _state, Meta& m) : meta_props(m) {state = _state; size = 0;}
 	ParticleRestricted& operator=(const ParticleRestricted& other) {
         if (this != &other) {
             meta_props = other.meta_props;
         }
         return *this;
     }
+    ~ParticleRestricted() {
+        if (size > 0) {
+            for (uint32_t i=0; i<size; i++) {
+                Ode::nonDim(ys[i], 1.0, meta_props.TU);
+            }
+        }
+    }
+
+    private:
+    uint32_t size;
+    std::array<double*, 10> ys;
 
 	public:
     const std::any& getParticleProperties() const {return meta_props.particle_properties;}
@@ -30,7 +41,7 @@ class ParticleRestricted {
     const std::optional<std::vector<m_force_func>>& getAdditionalForces() const {return meta_props.additional_forces;}
     m_cart_state_vector updateRebParticle() {return state;}
 	const std::optional<std::reference_wrapper<std::vector<Ode>>> getOdes() {return meta_props.getOdes();}
-    std::optional<std::vector<double>> getOdey(uint32_t id) const {meta_props.syncOde(); return meta_props.getOdey(id);}
+    std::optional<double*> getOdey(uint32_t id) {auto y = meta_props.getOdey(id); if (y.has_value()) {ys[size] = y.value(); size++;}; return y;}
 	uint32_t getHash() const {return meta_props.getHash();}
     bool isRemovable() const {return meta_props.isRemovable();}
 
@@ -58,7 +69,7 @@ class ParticleLite {
 	bool isType() const {return typeid(T) == p.getParticleProperties().type();}
 	template <typename T>
 	std::optional<T> getParticleProperties() const {if (isType<T>()) {return std::any_cast<T>(p.getParticleProperties());} else {return std::nullopt;}}
-    std::optional<std::vector<double>> getOdey(uint32_t id) const {return p.getOdey(id);}
+    std::optional<double*> getOdey(uint32_t id) const {return p.getOdey(id);}
 
 };
 
@@ -83,7 +94,7 @@ class ParticleHistory {
 	template <typename T>
 	std::optional<T> getParticleProperties() const {if (isType<T>()) {return std::any_cast<T>(meta_props.particle_properties);} else {return std::nullopt;}}
 	int getCollisionLog() const {return meta_props.getCollisionLog();}
-    std::optional<std::vector<double>> const getOdey(uint32_t id) {return meta_props.getOdey(id);};
+    std::optional<std::array<double, MAX_STATE>> const getOdey(uint32_t id) {return meta_props.getSaveOdey(id);};
 
 	public:
     inline void nonDim() {Scale<std::divides<double>> dim_((std::divides<double>()), meta_props.LU, meta_props.TU); dim_(state);}

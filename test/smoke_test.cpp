@@ -72,7 +72,7 @@ m_accel f22(const ParticleLite& p2) {
     return m_accel(-0.01, -0.01, -0.01);
 }
 
-std::vector<double> g11(std::vector<double> y, const ParticleLite& p1) {
+void g11(double* const yDot, const double* const y, const ParticleLite& p1) {
     auto props_1 = p1.getParticleProperties<properties1>();
     double param1 = props_1->param1;
     double param2 = props_1->param2;
@@ -82,10 +82,11 @@ std::vector<double> g11(std::vector<double> y, const ParticleLite& p1) {
     assert((param2 == 90.3));
     assert((mass == 1.0));
     assert((radius == 0.4));
-    return std::vector<double> {y[1], -y[0]};
+    yDot[0] = y[1];
+    yDot[1] = -y[0];
 }
 
-std::vector<double> g12(std::vector<double> y, const ParticleLite& p1) {
+void g12(double* const yDot, const double* const y, const ParticleLite& p1) {
     auto props_1 = p1.getParticleProperties<properties1>();
     double param1 = props_1->param1;
     double param2 = props_1->param2;
@@ -95,10 +96,12 @@ std::vector<double> g12(std::vector<double> y, const ParticleLite& p1) {
     assert((param2 == 90.3));
     assert((mass == 1.0));
     assert((radius == 0.4));
-    return std::vector<double> {0.1, 0.2, 0.3};
+    yDot[0] = 0.1;
+    yDot[1] = 0.2;
+    yDot[2] = 0.3;
 }
 
-std::vector<double> g21(std::vector<double> y, const ParticleLite& p2) {
+void g21(double* const yDot, const double* const y, const ParticleLite& p2) {
     auto props_2 = p2.getParticleProperties<properties2>();
     double param1 = props_2->param1;
     int param2 = props_2->param2;
@@ -108,10 +111,11 @@ std::vector<double> g21(std::vector<double> y, const ParticleLite& p2) {
     assert((param2 = 1));
     assert((mass == 2.0));
     assert((radius == 0.8));
-    return std::vector<double> {0.1, 0.2};
+    yDot[0] = 0.1;
+    yDot[1] = 0.2;
 }
 
-std::vector<double> g22(std::vector<double> y, const ParticleLite& p2) {
+void g22(double* const yDot, const double* const y, const ParticleLite& p2) {
     auto props_2 = p2.getParticleProperties<properties2>();
     double param1 = props_2->param1;
     int param2 = props_2->param2;
@@ -121,7 +125,9 @@ std::vector<double> g22(std::vector<double> y, const ParticleLite& p2) {
     assert((param2 = 1));
     assert((mass == 2.0));
     assert((radius == 0.8));
-    return std::vector<double> {0.1, 0.2, 0.3};
+    yDot[0] = 0.1;
+    yDot[1] = 0.2;
+    yDot[2] = 0.3;
 }
 
 std::vector<Particle> buildParticles() {
@@ -210,7 +216,7 @@ void saveOdeFile(m_history ps) {
 
     for (auto pt: ps) {
         auto t = pt[1].state.t;
-        std::optional<std::vector<double>> maybe_y = pt[1].getOdey(0);
+        std::optional<std::array<double, MAX_STATE>> maybe_y = pt[1].getOdey(0);
         auto y = maybe_y.value();
         std::print(out_file, "{:.2f} {:.2f} {:.2f}", t, y[0], y[1]);
         std::print(out_file, "\n");

@@ -5,8 +5,8 @@
 #include <cmath>
 #include "mantle.hpp"
 
-std::vector<double> dummy_ode(std::vector<double> y, const ParticleLite& p1) {
-    return {0.0};
+void dummy_ode(double* const yDot, const double* const y, const ParticleLite& p1) {
+    yDot[0] = 0.0;
 }
 
 m_accel dummy_forcing(const ParticleLite& p1) {
@@ -34,7 +34,7 @@ bool cmpr(struct dummy_properties p1, struct dummy_properties p2) {
 
 bool setOde_test() {
     Meta meta;
-    std::vector<double> y = {1.0, 2.0};
+    std::array<double, MAX_STATE> y = {1.0, 2.0};
     uint32_t id = 2;
     struct dummy_properties p_in = {.param1=2.2, .param2=3.8, .mass=9.3, .radius=100.56};
     meta.particle_properties = p_in;
@@ -80,7 +80,7 @@ bool setChar_test() {
 
 bool setHash_test() {
     Meta meta;
-    std::vector<double> y = {1.0, 2.0};
+    std::array<double, MAX_STATE> y = {1.0, 2.0};
     meta.setOde(dummy_ode, y, 2);
     uint32_t hash_in = 2;
     meta.setHash(hash_in);

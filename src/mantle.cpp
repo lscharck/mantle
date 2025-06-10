@@ -30,9 +30,9 @@ Mantle::Mantle(const std::vector<std::unique_ptr<struct MConfig>>& user_configs,
 
 Mantle::~Mantle() {
 
-    std::for_each(particles.begin(), particles.end(), [] (Particle& p) {
-        liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {reb_ode_free(ode.ho);});});
-        });
+//    std::for_each(particles.begin(), particles.end(), [] (Particle& p) {
+//        liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {reb_ode_free(ode.ho);});});
+//        });
     reb_simulation_free(r);
 
 }
@@ -144,7 +144,7 @@ void Mantle::addOde() {
                         struct reb_ode* ho = reb_ode_create(r, ode.size);
                         ho->derivatives = m_ode;
                         ode.TU = TU;
-                        ode.init_y = Ode::nonDim(ode.init_y, 1.0, TU);
+                        Ode::nonDim(ode.init_y.data(), 1.0, TU);
                         for (uint32_t i=0; i<ode.size;i++) {ho->y[i] = ode.init_y[i];}
                         ode.setOdey(ho);
                         ho->ref = const_cast<void*>(static_cast<const void*>(&ode));
@@ -160,6 +160,7 @@ m_history Mantle::evalSim(double tf, int nt) {
     double t = 0.0;
 
     std::vector<std::vector<ParticleHistory>> state_history;
+    state_history.reserve(nt);
     for (int i = 0; i <= nt; i++) {
         reb_simulation_integrate(r, t);
         std::vector<ParticleHistory> tmp_ps(r->N);
@@ -168,7 +169,7 @@ m_history Mantle::evalSim(double tf, int nt) {
         int count = std::count_if(tmp_ps.begin(), tmp_ps.end(), [](auto p) {return p.collectHistory();});
         std::vector<ParticleHistory> ps(count);
         std::copy_if(tmp_ps.begin(), tmp_ps.end(), ps.begin(), [](auto p) {return p.collectHistory();});
-        state_history.push_back(ps);
+        state_history.emplace_back(ps);
         if (r->status == REB_STATUS::REB_STATUS_USER) {break;}
         t += dt;
     }
@@ -226,7 +227,6 @@ int m_collisionResolve(struct reb_simulation* r, struct reb_collision c) {
 
     p1.dim();
     p2.dim();
-
     ParticleLite p1l(p1);
     ParticleLite p2l(p2);
 
@@ -263,29 +263,22 @@ int m_collisionResolve(struct reb_simulation* r, struct reb_collision c) {
 void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y, const double t) {
 
     auto _ode = static_cast<Ode*>(ode->ref);
-
+    double TU = _ode->TU;
     uint32_t hash = _ode->hash;
     auto f = _ode->ode_func;
 
     reb_particle* s = reb_simulation_particle_by_hash(ode->r, hash);
-
-    std::vector<double> _y;
-    std::vector<double> y_dot;
-    int size = _ode->size;
 
     if (s == NULL) {return;};
 
     ParticleRestricted p(m_rebToCart(s, t), *static_cast<Meta*>(s->ap));
     p.dim();
 
-    ParticleLite pl(p);
+    Ode::dim(const_cast<double*>(y), 1.0, TU);
+    f(yDot, y, ParticleLite(p));
 
-    double TU = _ode->TU;
-    _y.insert(_y.end(), y, y+size);
-    y_dot = Ode::nonDim(f(Ode::dim(_y, 1.0, TU), pl), TU, TU*TU);
-    for (int i = 0; i < size; i++) {
-        yDot[i] = y_dot[i];
-    }
+    Ode::nonDim(yDot, TU, TU*TU);
+    Ode::nonDim(const_cast<double*>(y), 1.0, TU);
 
 }
 

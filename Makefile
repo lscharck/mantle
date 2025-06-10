@@ -21,7 +21,7 @@ endif
 
 all: rebound $(LIB)
 
-release: CXXFLAGS=-O2 -DNDEBUG -Werror -std=c++23 -pedantic -Wall -Wno-unknown-pragmas -I$(INC) -I$(REBOUNDINC)
+release: CXXFLAGS=-O3 -DNDEBUG -Werror -std=c++23 -pedantic -Wall -Wno-unknown-pragmas -I$(INC) -I$(REBOUNDINC)
 release: clean
 release: rebound $(LIB)
 
