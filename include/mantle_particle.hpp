@@ -10,7 +10,10 @@
 #include <iostream>
 #include <fstream>
 
-#define MAX_STATE 3
+#include "mantle_particle_types.hpp"
+
+#define MAX_STATE 10
+#define MAX_ODE_CALL 10
 
 struct m_accel {
 
@@ -95,6 +98,7 @@ class Ode {
 	struct reb_ode* ho;
     std::array<double, MAX_STATE> save_y;
 	std::any particle_properties;
+	std::optional<PropertiesGen> particle_properties_gen;
 	uint32_t id;
 	uint32_t hash;
     double TU;
@@ -104,19 +108,19 @@ class Ode {
 
     public:
     template <typename Op>
-    inline static void scale(Op op, double* y, double s1, double s2) {
+    inline static void scale(Op op, double* y, double s1, double s2, uint32_t size) {
 
-        for (uint32_t i=0; i<MAX_STATE; i+=2) {
+        for (uint32_t i=0; i<size; i+=2) {
             y[i] = op(y[i], s1);
         }
 
-        for (uint32_t i=1; i<MAX_STATE; i+=2) {
+        for (uint32_t i=1; i<size; i+=2) {
             y[i] = op(y[i], s2);
         }
 
     }
-    inline static void dim(double* y, double s1, double s2) {scale((std::divides<double>()), y, s1, s2);}
-    inline static void nonDim(double* y, double s1, double s2) {scale((std::multiplies<double>()), y, s1, s2);}
+    inline static void dim(double* y, double s1, double s2, uint32_t size) {scale((std::divides<double>()), y, s1, s2, size);}
+    inline static void nonDim(double* y, double s1, double s2, uint32_t size) {scale((std::multiplies<double>()), y, s1, s2, size);}
 
 };
 
@@ -128,6 +132,7 @@ class Meta {
 	bool collect_history;
     bool removable;
 	std::any particle_properties;
+	std::optional<PropertiesGen> particle_properties_gen;
 	uint32_t hash;
 
 	std::optional<std::vector<m_force_func>> additional_forces;
@@ -151,9 +156,11 @@ class Meta {
 	void setHash(uint32_t);
     void setIsRemovable(bool s) {removable = s;}
     void syncOde();
+    void nonDimId(uint32_t);
 
    	template <typename T>
 	void setParticleProperties(const T& properties) {particle_properties = properties;}
+	void setParticlePropertiesGen(const PropertiesGen properties) {particle_properties_gen = properties;}
 
 	public:
 	void incCollision() {if (count_collisions) {collisions++;}}
@@ -191,6 +198,7 @@ class Particle {
 
 	template <typename T>
 	void setParticleProperties(const T& properties) {meta_props.setParticleProperties(properties);}
+	void setParticlePropertiesGen(const PropertiesGen properties) {meta_props.setParticlePropertiesGen(properties);}
 
 	protected:
 	void setCollisionContext(m_coll_context collision_context) {meta_props.setCollisionContext(collision_context);}

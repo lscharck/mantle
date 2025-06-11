@@ -26,22 +26,23 @@ class ParticleRestricted {
     ~ParticleRestricted() {
         if (size > 0) {
             for (uint32_t i=0; i<size; i++) {
-                Ode::nonDim(ys[i], 1.0, meta_props.TU);
+                meta_props.nonDimId(y_id[i]);
             }
         }
     }
 
     private:
     uint32_t size;
-    std::array<double*, 10> ys;
+    std::array<uint32_t, MAX_ODE_CALL> y_id;
 
 	public:
     const std::any& getParticleProperties() const {return meta_props.particle_properties;}
+    const std::optional<PropertiesGen>& getParticlePropertiesGen() const {return meta_props.particle_properties_gen;}
     const m_coll_context& getCollisionContext() const {return meta_props.collision_context;}
     const std::optional<std::vector<m_force_func>>& getAdditionalForces() const {return meta_props.additional_forces;}
     m_cart_state_vector updateRebParticle() {return state;}
 	const std::optional<std::reference_wrapper<std::vector<Ode>>> getOdes() {return meta_props.getOdes();}
-    std::optional<double*> getOdey(uint32_t id) {auto y = meta_props.getOdey(id); if (y.has_value()) {ys[size] = y.value(); size++;}; return y;}
+    std::optional<double*> getOdey(uint32_t id) {auto y = meta_props.getOdey(id); if (y.has_value()) {y_id[size] = id; size++;}; return y;}
 	uint32_t getHash() const {return meta_props.getHash();}
     bool isRemovable() const {return meta_props.isRemovable();}
 
@@ -69,6 +70,7 @@ class ParticleLite {
 	bool isType() const {return typeid(T) == p.getParticleProperties().type();}
 	template <typename T>
 	std::optional<T> getParticleProperties() const {if (isType<T>()) {return std::any_cast<T>(p.getParticleProperties());} else {return std::nullopt;}}
+    const std::optional<PropertiesGen>& getParticlePropertiesGen() const {return p.getParticlePropertiesGen();}
     std::optional<double*> getOdey(uint32_t id) const {return p.getOdey(id);}
 
 };

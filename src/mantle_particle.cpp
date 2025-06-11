@@ -23,6 +23,7 @@ void Meta::setOde(m_ode_func func, std::vector<double> y, uint32_t id) {
     ode.size     = y.size();
     ode.id       = id;
     ode.particle_properties = particle_properties;
+    ode.particle_properties_gen = particle_properties_gen;
 
     for (uint32_t i=0; i<ode.size; i++) {ode.init_y[i] = y[i];};
     ode.save_y   = ode.init_y;
@@ -41,12 +42,23 @@ void Meta::syncOde() {
 
     for (auto& ode: odes.value()) {
         int size = ode.size;
-        Ode::dim(ode.ho->y, 1.0, TU);
+        Ode::dim(ode.ho->y, 1.0, TU, ode.size);
         std::copy(ode.ho->y, ode.ho->y+size, ode.save_y.begin());
-        Ode::nonDim(ode.ho->y, 1.0, TU);
+        Ode::nonDim(ode.ho->y, 1.0, TU, ode.size);
     }
 
 }
+
+void Meta::nonDimId(uint32_t id) {
+
+    if (!odes.has_value()) {return;}
+
+    for (auto& ode: odes.value()) {
+        if (ode.id == id) {Ode::nonDim(ode.ho->y, 1.0, TU, ode.size);}
+    }
+
+}
+
 
 const std::optional<std::array<double, MAX_STATE>> Meta::getSaveOdey(uint32_t id) const {
 
@@ -65,7 +77,7 @@ const std::optional<double*> Meta::getOdey(uint32_t id) const {
     if (!odes.has_value()) {return std::nullopt;}
 
     for (auto& ode: odes.value()) {
-        if (ode.id == id) {Ode::dim(ode.ho->y, 1.0, TU); return ode.ho->y;}
+        if (ode.id == id) {Ode::dim(ode.ho->y, 1.0, TU, ode.size); return ode.ho->y;}
     }
 
     return std::nullopt;

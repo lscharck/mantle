@@ -30,9 +30,9 @@ Mantle::Mantle(const std::vector<std::unique_ptr<struct MConfig>>& user_configs,
 
 Mantle::~Mantle() {
 
-//    std::for_each(particles.begin(), particles.end(), [] (Particle& p) {
-//        liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {reb_ode_free(ode.ho);});});
-//        });
+    std::for_each(particles.begin(), particles.end(), [] (Particle& p) {
+        liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {if (ode.ho != NULL) {reb_ode_free(ode.ho);}});});
+        });
     reb_simulation_free(r);
 
 }
@@ -144,7 +144,7 @@ void Mantle::addOde() {
                         struct reb_ode* ho = reb_ode_create(r, ode.size);
                         ho->derivatives = m_ode;
                         ode.TU = TU;
-                        Ode::nonDim(ode.init_y.data(), 1.0, TU);
+                        Ode::nonDim(ode.init_y.data(), 1.0, TU, ode.size);
                         for (uint32_t i=0; i<ode.size;i++) {ho->y[i] = ode.init_y[i];}
                         ode.setOdey(ho);
                         ho->ref = const_cast<void*>(static_cast<const void*>(&ode));
@@ -274,11 +274,11 @@ void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y,
     ParticleRestricted p(m_rebToCart(s, t), *static_cast<Meta*>(s->ap));
     p.dim();
 
-    Ode::dim(const_cast<double*>(y), 1.0, TU);
+    Ode::dim(const_cast<double*>(y), 1.0, TU, _ode->size);
     f(yDot, y, ParticleLite(p));
 
-    Ode::nonDim(yDot, TU, TU*TU);
-    Ode::nonDim(const_cast<double*>(y), 1.0, TU);
+    Ode::nonDim(yDot, TU, TU*TU, _ode->size);
+    Ode::nonDim(const_cast<double*>(y), 1.0, TU, _ode->size);
 
 }
 
@@ -331,7 +331,7 @@ void m_heartbeat(struct reb_simulation* r) {
             ParticleRestricted p(m_rebToCart(rp, t), *static_cast<Meta*>(rp.ap));
             p.dim();
             if (p.isRemovable() && tester(ParticleLite(p))) {
-                liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {reb_ode_free(ode.ho);});});
+                liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {reb_ode_free(ode.ho); ode.ho = NULL;});});
                 reb_simulation_remove_particle_by_hash(r, p.getHash(), 0);
             }
     });
@@ -341,13 +341,13 @@ void m_heartbeat(struct reb_simulation* r) {
 
 }
 
-struct m_cart_state_vector m_rebToCart(struct reb_particle& p, double t_) {
+m_cart_state_vector m_rebToCart(struct reb_particle& p, double t_) {
 
     return {.x = p.x, .y = p.y, .z = p.z, .vx = p.vx, .vy = p.vy, .vz = p.vz, .t = t_};
 
 }
 
-struct m_cart_state_vector m_rebToCart(struct reb_particle* p, double t_) {
+m_cart_state_vector m_rebToCart(struct reb_particle* p, double t_) {
 
     return {.x = p->x, .y = p->y, .z = p->z, .vx = p->vx, .vy = p->vy, .vz = p->vz, .t = t_};
 

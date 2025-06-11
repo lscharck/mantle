@@ -68,9 +68,9 @@ void m_heartbeatPar(struct reb_simulation* r);
 void m_heartbeat(struct reb_simulation* r);
 
 struct reb_particle;
-struct m_cart_state_vector m_rebToCart(struct reb_particle&, double);
+m_cart_state_vector m_rebToCart(struct reb_particle&, double);
 
-struct m_cart_state_vector m_rebToCart(struct reb_particle*, double);
+m_cart_state_vector m_rebToCart(struct reb_particle*, double);
 
 #endif // MANTLE_H
 
