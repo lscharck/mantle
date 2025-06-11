@@ -16,15 +16,16 @@ Meta::Meta() {
 
 }
 
-void Meta::setOde(m_ode_func func, std::array<double, MAX_STATE> y, uint32_t id) {
+void Meta::setOde(m_ode_func func, std::vector<double> y, uint32_t id) {
 
     Ode ode;
     ode.ode_func = func;
-    ode.init_y   = y;
     ode.size     = y.size();
-    ode.save_y   = ode.init_y;
     ode.id       = id;
     ode.particle_properties = particle_properties;
+
+    for (uint32_t i=0; i<ode.size; i++) {ode.init_y[i] = y[i];};
+    ode.save_y   = ode.init_y;
 
     if (!odes.has_value()) {
         odes = std::vector<Ode>{};
@@ -49,7 +50,7 @@ void Meta::syncOde() {
 
 const std::optional<std::array<double, MAX_STATE>> Meta::getSaveOdey(uint32_t id) const {
 
-    if (!odes.has_value()) { return std::nullopt;}
+    if (!odes.has_value()) {return std::nullopt;}
 
     for (auto& ode: odes.value()) {
         if (ode.id == id) {return ode.save_y;}
@@ -61,7 +62,7 @@ const std::optional<std::array<double, MAX_STATE>> Meta::getSaveOdey(uint32_t id
 
 const std::optional<double*> Meta::getOdey(uint32_t id) const {
 
-    if (!odes.has_value()) { return std::nullopt;}
+    if (!odes.has_value()) {return std::nullopt;}
 
     for (auto& ode: odes.value()) {
         if (ode.id == id) {Ode::dim(ode.ho->y, 1.0, TU); return ode.ho->y;}

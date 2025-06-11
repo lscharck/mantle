@@ -34,14 +34,15 @@ bool cmpr(struct dummy_properties p1, struct dummy_properties p2) {
 
 bool setOde_test() {
     Meta meta;
-    std::array<double, MAX_STATE> y = {1.0, 2.0};
+    std::vector<double> y = {1.0, 2.0};
+    std::array<double, MAX_STATE> y_out = {1.0, 2.0};
     uint32_t id = 2;
     struct dummy_properties p_in = {.param1=2.2, .param2=3.8, .mass=9.3, .radius=100.56};
     meta.particle_properties = p_in;
     meta.setOde(dummy_ode, y, id);
     Ode ode = meta.odes.value()[0];
     struct dummy_properties p_out = std::any_cast<struct dummy_properties>(ode.particle_properties);
-    return ((ode.id == id) && (ode.ode_func == dummy_ode) && (ode.init_y == y) && (cmpr(p_in, p_out)));
+    return ((ode.id == id) && (ode.ode_func == dummy_ode) && (ode.init_y[0] == y_out[0]) && (ode.init_y[1] == y_out[1]) && (cmpr(p_in, p_out)));
 }
 
 bool setCollisionTracker_test() {
@@ -80,7 +81,7 @@ bool setChar_test() {
 
 bool setHash_test() {
     Meta meta;
-    std::array<double, MAX_STATE> y = {1.0, 2.0};
+    std::vector<double> y = {1.0, 2.0};
     meta.setOde(dummy_ode, y, 2);
     uint32_t hash_in = 2;
     meta.setHash(hash_in);

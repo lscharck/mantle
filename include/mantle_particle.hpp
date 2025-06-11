@@ -10,7 +10,7 @@
 #include <iostream>
 #include <fstream>
 
-#define MAX_STATE 10
+#define MAX_STATE 3
 
 struct m_accel {
 
@@ -142,7 +142,7 @@ class Meta {
 	Meta();
 
     public:
-   	void setOde(m_ode_func func, std::array<double, MAX_STATE> y, uint32_t id);
+   	void setOde(m_ode_func func, std::vector<double> y, uint32_t id);
 	void setCollisionTracker(void) {count_collisions = true;}
 	void setHistoryTracker(void) {collect_history = true;}
 	void setAdditionalForces(std::vector<m_force_func> function_array) {additional_forces = function_array;}
@@ -186,7 +186,7 @@ class Particle {
 	void setCollisionTracker(void) {meta_props.setCollisionTracker();}
 	void setHistoryTracker(void) {meta_props.setHistoryTracker();}
 	void setAdditionalForces(std::vector<m_force_func> function_array) {meta_props.setAdditionalForces(function_array);}
-	void setOde(m_ode_func func, std::array<double, MAX_STATE> y, uint32_t id) {meta_props.setOde(func, y, id);}
+	void setOde(m_ode_func func, std::vector<double> y, uint32_t id) {meta_props.setOde(func, y, id);}
     void setIsRemovable(bool s) {meta_props.setIsRemovable(s);}
 
 	template <typename T>
