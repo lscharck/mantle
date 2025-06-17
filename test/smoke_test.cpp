@@ -236,13 +236,29 @@ bool smoke_test() {
     general.has_additional_forces = true;
 
     struct NoGravity gravity;
+
+#ifdef MPI
+    struct LineTreeCollision collision;
+    collision.collisionContext = decideCollision;
+    SimBox box;
+    box.box_size = 100;
+    box.x_boxes = 2;
+    box.y_boxes = 2;
+    box.z_boxes = 1;
+    collision.box = box;
+#else
     struct LineCollision collision;
     collision.collisionContext = decideCollision;
+#endif
 
     std::vector<std::unique_ptr<struct MConfig>> configs;
     configs.push_back(std::make_unique<struct General>(general));
     configs.push_back(std::make_unique<struct NoGravity>(gravity));
+#ifdef MPI
+    configs.push_back(std::make_unique<struct LineTreeCollision>(collision));
+#else
     configs.push_back(std::make_unique<struct LineCollision>(collision));
+#endif
     Mantle m(configs, buildParticles());
 
     auto hs = m.evalSim(10, 500);

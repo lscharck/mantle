@@ -1,4 +1,5 @@
-CXX=c++
+CXX=g++
+CC=gcc
 CXXFLAGS=-g3 -Wall -Wno-unknown-pragmas -std=c++23 -I$(INC) -I$(REBOUNDINC)
 SRC=src
 OBJ=obj
@@ -12,12 +13,23 @@ REBOUNDDIR=rebound
 REBOUNDINC=$(REBOUNDDIR)/src
 
 SET_OPENMP = 0
+SET_MPI = 0
 
 ifeq ($(SET_OPENMP), 1)
 	OPT=-DOPENMP
 	OPT+=-fopenmp
 	export OPENMP=1
 endif
+
+ifeq ($(SET_MPI), 1)
+	OPT+=-DMPI
+	CXX=mpic++
+	CC=mpicc
+	export MPI=1
+endif
+
+export CC
+
 
 all: rebound $(LIB)
 
@@ -39,7 +51,7 @@ rebound:
 
 test:
 	echo "Building test"
-	$(MAKE) -C $(TESTDIR) SET_OPENMP=$(SET_OPENMP) CXX=$(CXX)
+	$(MAKE) -C $(TESTDIR) SET_OPENMP=$(SET_OPENMP) SET_MPI=$(SET_MPI) CXX=$(CXX)
 
 clean:
 	$(RM) -r $(LIBDIR)/* $(OBJ)/*

@@ -12,6 +12,10 @@ ifeq ($(SET_OPENMP), 1)
 	OPT=-fopenmp
 endif
 
+ifeq ($(SET_MPI), 1)
+	OPT+=-DMPI
+endif
+
 all: clean test run_test
 
 test: test.o smoke_test.o meta_test.o
@@ -19,7 +23,7 @@ test: test.o smoke_test.o meta_test.o
 
 test.o smoke_test.o meta_test.o: test.cpp smoke_test.cpp meta_test.cpp
 	$(CXX) $(CXXFLAGS) -c meta_test.cpp -o meta_test.o
-	$(CXX) $(CXXFLAGS) -c smoke_test.cpp -o smoke_test.o
+	$(CXX) $(CXXFLAGS) -c $(OPT) smoke_test.cpp -o smoke_test.o
 	$(CXX) $(CXXFLAGS) -c test.cpp -o test.o
 
 run_test:

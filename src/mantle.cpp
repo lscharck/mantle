@@ -174,6 +174,10 @@ m_history Mantle::evalSim(double tf, int nt) {
         t += dt;
     }
 
+#ifdef MPI
+    reb_mpi_finalize(r);
+#endif
+
     return state_history;
 
 }

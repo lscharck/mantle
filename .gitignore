@@ -38,6 +38,7 @@ test/test
 
 # Test data
 test/data.txt
+test/ode_data.txt
 
 # ccls
 .ccls-cache

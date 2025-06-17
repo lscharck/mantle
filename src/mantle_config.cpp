@@ -6,13 +6,13 @@ extern "C" {
 std::string BasicGravity::updateSim(class Mantle* m, reb_simulation* r) {r->gravity = reb_simulation::REB_GRAVITY_TREE; return "";}
 std::string CompensatedGravity::updateSim(class Mantle* m, reb_simulation* r) {r->gravity = reb_simulation::REB_GRAVITY_COMPENSATED; return "";}
 std::string TreeGravity::updateSim(class Mantle* m, reb_simulation* r) {
-    if (opening_angle2.has_value()) {r->opening_angle2 = opening_angle2.value();}
-    if (!box.box_size.has_value()) {
-        r->gravity = reb_simulation::REB_GRAVITY_TREE;
-        return "Error: No box size set";
-    }
-    reb_simulation_configure_box(r, box.box_size.value(), box.x_boxes.value(), box.y_boxes.value(), box.z_boxes.value());
     r->gravity = reb_simulation::REB_GRAVITY_TREE;
+    if (opening_angle2.has_value()) {r->opening_angle2 = opening_angle2.value();}
+    if (!box.box_size.has_value()) {return "Error: No box size set";}
+    reb_simulation_configure_box(r, box.box_size.value(), box.x_boxes.value(), box.y_boxes.value(), box.z_boxes.value());
+#ifdef MPI
+    reb_mpi_init(r);
+#endif
     return "";
 }
 std::string JacobiGravity::updateSim(class Mantle* m, reb_simulation* r) {r->gravity = reb_simulation::REB_GRAVITY_JACOBI; return "";}
@@ -29,23 +29,23 @@ std::string LineCollision::updateSim(class Mantle* m, reb_simulation* r) {
     return "";
 }
 std::string TreeCollision::updateSim(class Mantle* m, reb_simulation* r) {
-    if (collisionContext.has_value()) {m->collisionContext = collisionContext.value();}
-    if (!box.box_size.has_value()) {
-        r->collision = reb_simulation::REB_COLLISION_TREE;
-        return "Error: No box size set";
-    }
-    reb_simulation_configure_box(r, box.box_size.value(), box.x_boxes.value(), box.y_boxes.value(), box.z_boxes.value());
     r->collision = reb_simulation::REB_COLLISION_TREE;
+    if (collisionContext.has_value()) {m->collisionContext = collisionContext.value();}
+    if (!box.box_size.has_value()) {return "Error: No box size set";}
+    reb_simulation_configure_box(r, box.box_size.value(), box.x_boxes.value(), box.y_boxes.value(), box.z_boxes.value());
+#ifdef MPI
+    reb_mpi_init(r);
+#endif
     return "";
 }
 std::string LineTreeCollision::updateSim(class Mantle* m, reb_simulation* r) {
-    if (collisionContext.has_value()) {m->collisionContext = collisionContext.value();}
-    if (!box.box_size.has_value()) {
-        r->collision = reb_simulation::REB_COLLISION_LINETREE;
-        return "Error: No box size set";
-    }
-    reb_simulation_configure_box(r, box.box_size.value(), box.x_boxes.value(), box.y_boxes.value(), box.z_boxes.value());
     r->collision = reb_simulation::REB_COLLISION_LINETREE;
+    if (collisionContext.has_value()) {m->collisionContext = collisionContext.value();}
+    if (!box.box_size.has_value()) {return "Error: No box size set";}
+    reb_simulation_configure_box(r, box.box_size.value(), box.x_boxes.value(), box.y_boxes.value(), box.z_boxes.value());
+#ifdef MPI
+    reb_mpi_init(r);
+#endif
     return "";
 }
 std::string NoCollision::updateSim(class Mantle* m, reb_simulation* r) {r->collision = reb_simulation::REB_COLLISION_NONE; return "";}
