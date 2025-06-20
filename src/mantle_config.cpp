@@ -62,7 +62,7 @@ std::string IAS15Integrator::updateSim(class Mantle* m, reb_simulation* r) {
     return "";
 }
 std::string BSIntegrator::updateSim(class Mantle* m, reb_simulation* r) {
-    r->integrator = reb_simulation::REB_INTEGRATOR_BS;
+    if (!ode_only) {r->integrator = reb_simulation::REB_INTEGRATOR_BS;}
     if (eps_rel.has_value()) {r->ri_bs.eps_rel = eps_rel.value();}
     if (eps_abs.has_value()) {r->ri_bs.eps_abs = eps_abs.value();}
     if (max_dt.has_value()) {r->ri_bs.max_dt = max_dt.value();}
@@ -75,19 +75,19 @@ std::string SEIIntegrator::updateSim(class Mantle* m, reb_simulation* r) {r->int
 std::string NoIntegrator::updateSim(class Mantle* m, reb_simulation* r) {r->integrator = reb_simulation::REB_INTEGRATOR_NONE; return "";}
 
 std::string General::updateSim(class Mantle* m, reb_simulation* r) {
-    if(G.has_value()) {r->G = G.value();}
-    if(MU.has_value()) {m->MU = MU.value();}
-    if(LU.has_value()) {m->LU = LU.value();}
-    if(TU.has_value()) {m->TU = TU.value();}
-    if(dt.has_value()) {r->dt = dt.value();}
-    if(active.has_value()) {r->N_active = active.value();}
-    if(softening.has_value()) {r->softening = softening.value();}
-    if(has_ode.has_value()) {m->has_ode = has_ode.value();}
-    if(has_additional_forces.has_value()) {m->has_additional_forces = has_additional_forces.value();}
-    if(force_is_velocity_dep.has_value()) {m->force_is_velocity_dep = force_is_velocity_dep.value();}
+    if (G.has_value()) {r->G = G.value();}
+    m->MU = MU;
+    m->LU = LU;
+    m->TU = TU;
+    r->testparticle_hidewarnings = silence;
+    m->has_ode = has_ode;
+    m->has_additional_forces = has_additional_forces;
+    m->force_is_velocity_dep = force_is_velocity_dep;
+    if (dt.has_value()) {r->dt = dt.value();}
+    if (active.has_value()) {r->N_active = active.value();}
+    if (softening.has_value()) {r->softening = softening.value();}
     if (removeParticleTest.has_value()) {m->removeParticleTest = removeParticleTest.value();}
     if (simTerminate.has_value()) {m->simTerminate = simTerminate.value();}
-    if (silence.has_value()) {r->testparticle_hidewarnings = silence.value();}
 #ifdef OPENMP
         if(threads.has_value()) {omp_set_num_threads(threads.value());}
 #endif

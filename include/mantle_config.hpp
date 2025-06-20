@@ -64,10 +64,12 @@ struct IAS15Integrator : MConfig {
     std::string updateSim(class Mantle* m, reb_simulation* r) override;
 };
 struct BSIntegrator : MConfig {
+    bool ode_only;
     std::optional<double> eps_rel;
     std::optional<double> eps_abs;
     std::optional<double> min_dt;
     std::optional<double> max_dt;
+    BSIntegrator() {ode_only = true;}
     std::string updateSim(class Mantle* m, reb_simulation* r) override;
 };
 struct WHFastIntegrator : MConfig {
@@ -90,19 +92,19 @@ struct NoIntegrator : MConfig { std::string updateSim(class Mantle* m, reb_simul
 
 struct General : MConfig {
     std::optional<double> G;
-    std::optional<double> MU;
-    std::optional<double> LU;
-    std::optional<double> TU;
+    double MU;
+    double LU;
+    double TU;
+    bool silence;
+    bool has_ode;
+    bool has_additional_forces;
+    bool force_is_velocity_dep;
     std::optional<double> dt;
     std::optional<int> active;
     std::optional<double> softening;
     std::optional<int> threads;
-    std::optional<bool> has_ode;
-    std::optional<bool> has_additional_forces;
-    std::optional<bool> force_is_velocity_dep;
     std::optional<m_remove_particle> removeParticleTest;
     std::optional<m_sim_terminate> simTerminate;
-    std::optional<bool> silence;
     std::string updateSim(class Mantle* m, reb_simulation* r) override;
     General() {has_ode = false; has_additional_forces = false; force_is_velocity_dep = true; MU = 1.0; LU = 1.0; TU = 1.0; silence = true;}
 };
