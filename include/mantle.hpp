@@ -40,6 +40,7 @@ class Mantle {
 	public:
 	Mantle(const std::vector<std::unique_ptr<struct MConfig>>&, std::vector<Particle>);
 	~Mantle();
+	m_history evalSim(double, int, bool);
 	m_history evalSim(double, int);
 
 	public:

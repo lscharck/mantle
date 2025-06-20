@@ -154,7 +154,9 @@ void Mantle::addOde() {
 
 }
 
-m_history Mantle::evalSim(double tf, int nt) {
+m_history Mantle::evalSim(double tf, int nt) {return evalSim(tf, nt, false);}
+
+m_history Mantle::evalSim(double tf, int nt, bool progress) {
 
     double dt = tf / (nt * TU);
     double t = 0.0;
@@ -170,6 +172,8 @@ m_history Mantle::evalSim(double tf, int nt) {
         std::vector<ParticleHistory> ps(count);
         std::copy_if(tmp_ps.begin(), tmp_ps.end(), ps.begin(), [](auto p) {return p.collectHistory();});
         state_history.emplace_back(ps);
+
+        if (progress) {std::cout << "\033[1A\033[K" << (double)i/nt*100.0 << "%" << std::endl;}
         if (r->status == REB_STATUS::REB_STATUS_USER) {break;}
         t += dt;
     }

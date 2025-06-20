@@ -102,8 +102,9 @@ struct General : MConfig {
     std::optional<bool> force_is_velocity_dep;
     std::optional<m_remove_particle> removeParticleTest;
     std::optional<m_sim_terminate> simTerminate;
+    std::optional<bool> silence;
     std::string updateSim(class Mantle* m, reb_simulation* r) override;
-    General() {has_ode = false; has_additional_forces = false; force_is_velocity_dep = true; MU = 1.0; LU = 1.0; TU = 1.0;}
+    General() {has_ode = false; has_additional_forces = false; force_is_velocity_dep = true; MU = 1.0; LU = 1.0; TU = 1.0; silence = true;}
 };
 
 #endif // CONFIG_H
