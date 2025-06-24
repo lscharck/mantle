@@ -320,7 +320,7 @@ void m_heartbeatPar(struct reb_simulation* r) {
     }
 
     for (auto p : particles_to_remove) {
-        liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {reb_ode_free(ode.ho);});});
+        liftOptional(p.getOdes(), [] (auto odes) {std::for_each(odes.get().begin(), odes.get().end(), [] (Ode& ode) {reb_ode_free(ode.ho); ode.ho = NULL;});});
         reb_simulation_remove_particle_by_hash(r, p.getHash(), 0);
     }
 
