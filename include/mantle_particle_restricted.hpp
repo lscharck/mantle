@@ -98,6 +98,7 @@ class ParticleHistory {
     const std::optional<PropertiesGen>& getParticlePropertiesGen() const {return meta_props.particle_properties_gen;}
 	int getCollisionLog() const {return meta_props.getCollisionLog();}
     std::optional<std::array<double, MAX_STATE>> const getOdey(uint32_t id) {return meta_props.getSaveOdey(id);};
+	uint32_t getHash() const {return meta_props.getHash();}
 
 	public:
     inline void nonDim() {Scale<std::divides<double>> dim_((std::divides<double>()), meta_props.LU, meta_props.TU); dim_(state);}
