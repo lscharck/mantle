@@ -5,7 +5,7 @@
 #include <cmath>
 #include "mantle.hpp"
 
-void dummy_ode(double* const yDot, const double* const y, const ParticleLite& p1) {
+void dummy_ode(double* const yDot, const double* const y, double t, const ParticleLite& p1) {
     yDot[0] = 0.0;
 }
 

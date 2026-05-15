@@ -72,7 +72,7 @@ m_accel f22(const ParticleLite& p2) {
     return m_accel(-0.01, -0.01, -0.01);
 }
 
-void g11(double* const yDot, const double* const y, const ParticleLite& p1) {
+void g11(double* const yDot, const double* const y, double t, const ParticleLite& p1) {
     auto props_1 = p1.getParticleProperties<properties1>();
     double param1 = props_1->param1;
     double param2 = props_1->param2;
@@ -86,7 +86,7 @@ void g11(double* const yDot, const double* const y, const ParticleLite& p1) {
     yDot[1] = -y[0];
 }
 
-void g12(double* const yDot, const double* const y, const ParticleLite& p1) {
+void g12(double* const yDot, const double* const y, double t, const ParticleLite& p1) {
     auto props_1 = p1.getParticleProperties<properties1>();
     double param1 = props_1->param1;
     double param2 = props_1->param2;
@@ -101,7 +101,7 @@ void g12(double* const yDot, const double* const y, const ParticleLite& p1) {
     yDot[2] = 0.3;
 }
 
-void g21(double* const yDot, const double* const y, const ParticleLite& p2) {
+void g21(double* const yDot, const double* const y, double t, const ParticleLite& p2) {
     auto props_2 = p2.getParticleProperties<properties2>();
     double param1 = props_2->param1;
     int param2 = props_2->param2;
@@ -115,7 +115,7 @@ void g21(double* const yDot, const double* const y, const ParticleLite& p2) {
     yDot[1] = 0.2;
 }
 
-void g22(double* const yDot, const double* const y, const ParticleLite& p2) {
+void g22(double* const yDot, const double* const y, double t, const ParticleLite& p2) {
     auto props_2 = p2.getParticleProperties<properties2>();
     double param1 = props_2->param1;
     int param2 = props_2->param2;

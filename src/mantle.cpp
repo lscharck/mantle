@@ -283,7 +283,7 @@ void m_ode(struct reb_ode* const ode, double* const yDot, const double* const y,
     p.dim();
 
     Ode::dim(const_cast<double*>(y), 1.0, TU, _ode->size);
-    f(yDot, y, ParticleLite(p));
+    f(yDot, y, TU*(ode->r->t), ParticleLite(p));
 
     Ode::nonDim(yDot, TU, TU*TU, _ode->size);
     Ode::nonDim(const_cast<double*>(y), 1.0, TU, _ode->size);

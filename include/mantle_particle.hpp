@@ -86,7 +86,7 @@ class ParticleLite;
 typedef m_accel (*m_force_func)(const ParticleLite&);
 typedef int (*m_coll_func)(ParticleLite&, ParticleLite&);
 typedef m_coll_func (*m_coll_context)(const ParticleLite&, const ParticleLite&);
-typedef void (*m_ode_func)(double* const, const double* const, const ParticleLite&);
+typedef void (*m_ode_func)(double* const, const double* const, double, const ParticleLite&);
 
 struct reb_ode;
 class Ode {
