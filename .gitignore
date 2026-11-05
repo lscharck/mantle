@@ -46,3 +46,4 @@ compile_commands.json
 
 # UML
 .clang-uml
+clang-uml.yaml

@@ -1,5 +1,5 @@
-CXX=g++
-CC=gcc
+CXX=c++
+CC=cc
 CXXFLAGS=-g3 -Wall -Wno-unknown-pragmas -std=c++23 -I$(INC) -I$(REBOUNDINC)
 SRC=src
 OBJ=obj

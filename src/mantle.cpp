@@ -158,13 +158,18 @@ m_history Mantle::evalSim(double tf, int nt) {return evalSim(tf, nt, false);}
 
 m_history Mantle::evalSim(double tf, int nt, bool progress) {
 
-    double dt = tf / (nt * TU);
-    double t = 0.0;
+    double t_final = tf / TU;
+    double dt = t_final / nt;
 
     std::vector<std::vector<ParticleHistory>> state_history;
-    state_history.reserve(nt);
+    state_history.reserve(nt + 1);
+
     for (int i = 0; i <= nt; i++) {
-        reb_simulation_integrate(r, t);
+        double t_target = i * dt;
+        if (i == nt || t_target > t_final) {
+            t_target = t_final;
+        }
+        reb_simulation_integrate(r, t_target);
         std::vector<ParticleHistory> tmp_ps(r->N);
         std::transform(r->particles, r->particles + r->N, tmp_ps.begin(), [t_=r->t] (auto p) {ParticleHistory result(m_rebToCart(p, t_), *static_cast<Meta*>(p.ap)); result.dim(); return result;});
 
@@ -175,7 +180,6 @@ m_history Mantle::evalSim(double tf, int nt, bool progress) {
 
         if (progress) {std::cout << "\033[1A\033[K" << (double)i/nt*100.0 << "%" << std::endl;}
         if (r->status == REB_STATUS::REB_STATUS_USER) {break;}
-        t += dt;
     }
 
 #ifdef MPI
